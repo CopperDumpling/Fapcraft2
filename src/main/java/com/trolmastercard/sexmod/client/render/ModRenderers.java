@@ -2,6 +2,7 @@ package com.trolmastercard.sexmod.client.render;
 
 import com.trolmastercard.sexmod.Fapcraft;
 import com.trolmastercard.sexmod.registry.ModEntities;
+import java.util.List;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -12,11 +13,19 @@ import org.joml.Vector3f;
 public final class ModRenderers {
     /** 1.12.2 {@code JennyEntity} constructor values. */
     private static final HeldWeaponLayer.WeaponPose JENNY_WEAPON = new HeldWeaponLayer.WeaponPose(140.0F, 50.0F, new Vector3f(0.0F, -0.03F, -0.2F), 140.0F);
+    /** 1.12.2 {@code JennyNpcModel}. */
+    private static final ArmorLayer.Bones JENNY_ARMOR = new ArmorLayer.Bones(
+        new ArmorLayer.Part(List.of("armorHelmet"), List.of()),
+        new ArmorLayer.Part(List.of("armorShoulderR", "armorShoulderL", "armorChest", "armorBoobs"), List.of("boobsFlesh", "upperBodyL", "upperBodyR")),
+        new ArmorLayer.Part(List.of("armorBootyR", "armorBootyL", "armorPantsLowL", "armorPantsLowR", "armorPantsUpR", "armorPantsUpL", "armorHip"),
+            List.of("fleshL", "fleshR", "vagina", "curvesL", "curvesR", "kneeL", "kneeR")),
+        new ArmorLayer.Part(List.of("armorShoesL", "armorShoesR"), List.of()));
+
     private ModRenderers() {
     }
 
     @SubscribeEvent
     static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(ModEntities.JENNY.get(), ctx -> new GirlRenderer<>(ctx, "jenny", JENNY_WEAPON));
+        event.registerEntityRenderer(ModEntities.JENNY.get(), ctx -> new GirlRenderer<>(ctx, "jenny", JENNY_WEAPON, JENNY_ARMOR));
     }
 }

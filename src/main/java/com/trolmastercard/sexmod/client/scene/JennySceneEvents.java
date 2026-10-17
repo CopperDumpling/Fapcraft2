@@ -127,7 +127,7 @@ public final class JennySceneEvents {
                 if (partner) HornyMeter.add(0.04);
             }
             case "bjtDone" -> {
-                if (partner) SceneControls.requestStep(jenny, GirlAction.THRUSTBLOWJOB, GirlAction.SUCKBLOWJOB);
+                if (partner) SceneControls.endFastLoop(jenny, GirlAction.THRUSTBLOWJOB, GirlAction.SUCKBLOWJOB);
             }
 
             // climax
@@ -200,7 +200,7 @@ public final class JennySceneEvents {
                 }
             }
             case "doggyfastDone" -> {
-                if (partner) SceneControls.requestStep(jenny, GirlAction.DOGGYFAST, GirlAction.DOGGYSLOW);
+                if (partner) SceneControls.endFastLoop(jenny, GirlAction.DOGGYFAST, GirlAction.DOGGYSLOW);
             }
             case "doggycumMSG1" -> {
                 play(jenny, ModSounds.MISC_CUMINFLATION.variant(0), 2.0F);
@@ -244,7 +244,7 @@ public final class JennySceneEvents {
                 }
             }
             case "paizuri_fastDone" -> {
-                if (partner) SceneControls.requestStep(jenny, GirlAction.PAIZURI_FAST, GirlAction.PAIZURI_SLOW);
+                if (partner) SceneControls.endFastLoop(jenny, GirlAction.PAIZURI_FAST, GirlAction.PAIZURI_SLOW);
             }
             default -> {
                 // events of scenes not ported yet

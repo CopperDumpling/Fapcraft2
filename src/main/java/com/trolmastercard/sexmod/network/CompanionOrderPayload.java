@@ -11,14 +11,15 @@ import net.minecraft.util.ByIdMap;
 /**
  * Client → server: one of the menu's companion buttons (1.12.2 {@code doAction} with
  * {@code followme}/{@code stopfollowme}/{@code gohome}/{@code setnewhome}, which wrote the
- * master and home straight from the client).
+ * master and home straight from the client, and {@code equipment}).
  */
 public record CompanionOrderPayload(int girlId, Order order) implements CustomPacketPayload {
     public enum Order {
         FOLLOW("action.names.followme"),
         STOP_FOLLOWING("action.names.stopfollowme"),
         GO_HOME("action.names.gohome"),
-        SET_HOME("action.names.setnewhome");
+        SET_HOME("action.names.setnewhome"),
+        EQUIPMENT("action.names.equipment");
 
         private static final IntFunction<Order> BY_ID = ByIdMap.continuous(Order::ordinal, values(), ByIdMap.OutOfBoundsStrategy.ZERO);
         static final StreamCodec<ByteBuf, Order> CODEC = ByteBufCodecs.idMapper(BY_ID, Order::ordinal);

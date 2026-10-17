@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -76,13 +77,12 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
     private static final EntityDataAccessor<Integer> DATA_ATTACK_MODE = SynchedEntityData.defineId(GirlEntity.class, EntityDataSerializers.INT);
     /** Which of the three attack animations the current {@link GirlAction#ATTACK} plays (1.12.2 {@code nextAttack}). */
     private static final EntityDataAccessor<Integer> DATA_ATTACK_ANIM = SynchedEntityData.defineId(GirlEntity.class, EntityDataSerializers.INT);
-    /** Copies of inventory slots 0 and 1 for the renderer (1.12.2 {@code WEAPON}, {@code BOW}). */
-    private static final EntityDataAccessor<ItemStack> DATA_WEAPON = SynchedEntityData.defineId(GirlEntity.class, EntityDataSerializers.ITEM_STACK);
-    private static final EntityDataAccessor<ItemStack> DATA_BOW = SynchedEntityData.defineId(GirlEntity.class, EntityDataSerializers.ITEM_STACK);
+    /** Copies of the equipment slots for the renderer and menu (1.12.2 {@code WEAPON}, {@code BOW}, {@code HELMET_SLOT}, ...). */
+    private static final List<EntityDataAccessor<ItemStack>> DATA_EQUIPMENT = Stream.of(GirlSlot.WEAPON, GirlSlot.BOW, GirlSlot.HELMET, GirlSlot.CHEST_PLATE, GirlSlot.PANTS, GirlSlot.SHOES)
+        .map(slot -> SynchedEntityData.defineId(GirlEntity.class, EntityDataSerializers.ITEM_STACK))
+        .toList();
 
     /** Inventory slots (1.12.2 {@code AbstractGirlNpcEntity.inventory}): weapon, bow, helmet, chest, legs, boots, spare. */
-    public static final int SLOT_WEAPON = 0;
-    public static final int SLOT_BOW = 1;
     public static final int INVENTORY_SIZE = 7;
     /** Slots dropped when she dies (1.12.2 dropped the first six). */
     private static final int DROPPED_SLOTS = 6;
@@ -130,8 +130,8 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
         super(type, level);
         this.getNavigation().setCanOpenDoors(true);
         // 1.12.2: every NPC girl starts with an iron sword and a bow
-        this.inventory.setItem(SLOT_WEAPON, new ItemStack(Items.IRON_SWORD));
-        this.inventory.setItem(SLOT_BOW, new ItemStack(Items.BOW));
+        this.inventory.setItem(GirlSlot.WEAPON.index(), new ItemStack(Items.IRON_SWORD));
+        this.inventory.setItem(GirlSlot.BOW.index(), new ItemStack(Items.BOW));
     }
 
     public static AttributeSupplier.Builder createGirlAttributes() {
@@ -203,8 +203,9 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
         builder.define(DATA_GAIT, Gait.WALK.ordinal());
         builder.define(DATA_ATTACK_MODE, 0);
         builder.define(DATA_ATTACK_ANIM, 1);
-        builder.define(DATA_WEAPON, ItemStack.EMPTY);
-        builder.define(DATA_BOW, ItemStack.EMPTY);
+        for (EntityDataAccessor<ItemStack> accessor : DATA_EQUIPMENT) {
+            builder.define(accessor, ItemStack.EMPTY);
+        }
     }
 
     public GirlAction getAction() {
@@ -398,18 +399,23 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
     }
 
     public ItemStack getWeapon() {
-        return this.inventory.getItem(SLOT_WEAPON);
+        return this.inventory.getItem(GirlSlot.WEAPON.index());
     }
 
     public ItemStack getBow() {
-        return this.inventory.getItem(SLOT_BOW);
+        return this.inventory.getItem(GirlSlot.BOW.index());
+    }
+
+    /** The synced copy of an equipment slot (weapon to shoes), for rendering on any side. */
+    public ItemStack getShownEquipment(GirlSlot slot) {
+        return slot.index() < DATA_EQUIPMENT.size() ? this.entityData.get(DATA_EQUIPMENT.get(slot.index())) : ItemStack.EMPTY;
     }
 
     /** The synced copy of what she holds, for rendering. */
     public ItemStack getHeldItem() {
         return switch (getAttackMode()) {
-            case 1 -> this.entityData.get(DATA_WEAPON);
-            case 2 -> this.entityData.get(DATA_BOW);
+            case 1 -> getShownEquipment(GirlSlot.WEAPON);
+            case 2 -> getShownEquipment(GirlSlot.BOW);
             default -> ItemStack.EMPTY;
         };
     }
@@ -524,7 +530,7 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
         }
     }
 
-    /** Server, every tick: regeneration, the downed state, timed companion actions and the held-item copies. */
+    /** Server, every tick: regeneration, the downed state, timed companion actions and the equipment copies. */
     private void tickCompanion() {
         if (this.home == null) this.home = this.position(); // where she spawned
         if (this.tickCount % 80 == 0 && getHealth() < getMaxHealth()) {
@@ -548,12 +554,11 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
         } else if (action == GirlAction.THROW_PEARL) {
             tickPearl(actionTicks());
         }
-        syncHeld(DATA_WEAPON, getWeapon());
-        syncHeld(DATA_BOW, getBow());
-    }
-
-    private void syncHeld(EntityDataAccessor<ItemStack> accessor, ItemStack stack) {
-        if (!ItemStack.matches(this.entityData.get(accessor), stack)) this.entityData.set(accessor, stack.copy());
+        for (int i = 0; i < DATA_EQUIPMENT.size(); i++) {
+            EntityDataAccessor<ItemStack> accessor = DATA_EQUIPMENT.get(i);
+            ItemStack stack = this.inventory.getItem(i);
+            if (!ItemStack.matches(this.entityData.get(accessor), stack)) this.entityData.set(accessor, stack.copy());
+        }
     }
 
     /* ------------------------------------------------------------------ */

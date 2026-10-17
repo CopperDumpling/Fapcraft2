@@ -208,3 +208,19 @@ idea {
         downloadJavadoc = true
     }
 }
+
+// Drop the built jar into the local Prism instance after every build (skipped if the instance is missing)
+def prismModsDir = file("/home/vm1/.local/share/PrismLauncher/instances/26.3 Forge/minecraft/mods")
+def jarPrefix = "${mod_id}-"
+var installJar = tasks.register("installJar", Copy) {
+    from tasks.named('jar')
+    into prismModsDir
+    onlyIf { prismModsDir.isDirectory() }
+    // Remove jars from earlier versions so the instance only ever loads the current one
+    doFirst {
+        prismModsDir.listFiles()
+                .findAll { it.name.startsWith(jarPrefix) && it.name.endsWith('.jar') }
+                .each { it.delete() }
+    }
+}
+tasks.named('build') { finalizedBy installJar }

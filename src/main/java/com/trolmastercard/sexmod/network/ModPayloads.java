@@ -6,7 +6,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 /** Registers every custom payload (the 1.12.2 mod had 49 packets; ported as features need them). */
 public final class ModPayloads {
     /** Bump whenever a payload's wire format changes. */
-    public static final String PROTOCOL = "2";
+    public static final String PROTOCOL = "3";
 
     private ModPayloads() {
     }

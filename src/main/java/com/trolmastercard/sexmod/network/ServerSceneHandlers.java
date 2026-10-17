@@ -3,8 +3,10 @@ package com.trolmastercard.sexmod.network;
 import com.trolmastercard.sexmod.entity.BedFinder;
 import com.trolmastercard.sexmod.entity.GirlEntity;
 import com.trolmastercard.sexmod.entity.SceneOption;
+import com.trolmastercard.sexmod.menu.GirlEquipmentMenu;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
@@ -59,6 +61,9 @@ final class ServerSceneHandlers {
                 girl.setHome(Vec3.atBottomCenterOf(girl.blockPosition()));
                 girl.onNewHome(player);
             }
+            case EQUIPMENT -> player.openMenu(
+                new SimpleMenuProvider((id, inventory, p) -> new GirlEquipmentMenu(id, inventory, girl), girl.getName()),
+                buf -> buf.writeVarInt(girl.getId()));
         }
     }
 

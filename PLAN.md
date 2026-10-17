@@ -80,7 +80,7 @@ Shared base: `BaseGirlEntity` (1.8k lines), `AbstractGirlNpcEntity`, `AbstractPl
 ### Phase 0: Scaffold (done)
 ModDevGradle project, GeckoLib + unrar5j (jar-in-jar). **Exit:** `./gradlew build` succeeds.
 
-### Phase 1: Foundations (done, pending in-game `/playsound` check)
+### Phase 1: Foundations (done)
 Registries skeleton, asset import, MC-free code, configs. **Exit:** client and dedicated server
 boot; `/playsound sexmod:...` works.
 
@@ -120,7 +120,7 @@ Design decisions:
 **Animation fix:** GeckoLib 5 extrapolates channels before their first keyframe (GeckoLib 3 held
 it); the importer pins 1583 such channels at t=0 (`hold_first_keyframes`).
 
-**3a: strip, boobjob, horny potion, transition (built, awaiting in-game check)**
+**3a: strip, boobjob, horny potion, transition (done)**
 - [x] Strip (paid), dress up (free, no scene lock); outfit toggle and end timed on the server
   (3 s / 5.04 s), since dress up has no partner client.
 - [x] Boobjob: start → slow ⇄ fast (sneak) → climax; boobjob/doggy strip her first if dressed.
@@ -131,14 +131,14 @@ it); the importer pins 1583 such channels at t=0 (`hold_first_keyframes`).
 - [x] Black-screen transition (`bjcBlackScreen`).
 - Not ported: `drawItems`/`removeItems` (never handled in 1.12) and `*Ready` events.
 
-**3b: doggy + bed (built, awaiting in-game check)**
+**3b: doggy + bed (done)**
 - [x] Payment → (strip) → walk to nearest bed (22 blocks, ±3), stand on its free side (`BedFinder`)
   → `STARTDOGGY` → `WAITDOGGY` → player walks into her → `DOGGYSTART` → `DOGGYSLOW` ⇄ `DOGGYFAST`
   (sneak; hard variant if jump held at `doggyfastReady`) → `DOGGYCUM`.
 - Changed: bed checked before payment; teleport to the bed after 10 s; wait times out after
   5 min; bed-time lines and timing are server-side.
 
-**3c: ownership, home, combat (built, awaiting in-game check)**
+**3c: ownership, home, combat (done)**
 - [x] Follow / stop following / go home / set home (`CompanionOrderPayload`; server checks range,
   busy, master). Master is synced data, not saved; she stops following when the master leaves.
   Home (spawn point until set) is saved.
@@ -150,17 +150,26 @@ it); the importer pins 1583 such channels at t=0 (`hold_first_keyframes`).
 - [x] Health: regen every 4 s (faster with master and no monsters); with a master, lethal damage
   downs her at 1 HP (`DOWNED`) until healed; no damage in scenes, partner protected. Death drops
   weapon, bow and armour; death sigh, no hurt sound.
-- [x] `HeldWeaponLayer` on the `weapon` bone with 1.12 angles. Check the grip in game.
+- [x] `HeldWeaponLayer` on the `weapon` bone with 1.12 angles.
 - Changed: attack end and pearl timing are server-side (and attack animation synced); her pearls
   are caught in `ProjectileImpactEvent`; downed/homeward girl says she's busy; exactly-lethal
   damage downs her; void and `/kill` still kill; death drops real stacks; home is the block centre.
 - Kept from 1.12: bow never visibly drawn; weapons swing every 3 ticks.
 - Not ported: `GirlAiBase` (dead), `InformOfOwnershipPacket` (Phase 5). Equipment button is 3d.
 
-**3d: inventory + equipment.** Two containers, menu, screen, equipment sync.
+**3d: equipment (built, awaiting in-game check)**
+- [x] Equipment menu from her "equipment" order: weapon (sword or tool), bow and four armour slots
+  over the player's inventory, `girlinventory.png` layout, shift-click.
+- [x] Worn armour on her dressed model: armour bones shown per part, hiding what they cover;
+  material by texture column (diamond and others 0, gold 1, iron/chainmail 2, leather 4 + dye).
+- Changed: the server menu edits her inventory directly (1.12 uploaded both inventories from the
+  client on close). Luna's rod menu and the 27-slot girl chest belong to Luna/Bee/Kobold (Phases 4–5).
 
-**3e: HUDs and screens.** 1.12 menu layout and artwork (`hornymeter.png`, `girlinventory.png`,
-`buttons.png`), escape minigame HUD.
+**3e: menu and HUD artwork (built, awaiting in-game check)**
+- [x] Action menu in the 1.12 layout: options slide in bottom right with their prices, equipment
+  preview and icon order buttons that open on hover on the left.
+- [x] Horny meter with `hornymeter.png` / `buttons.png`: slide-in, SHIFT and JUMP prompts, fill
+  flies off on climax.
 
 ### Phase 4: Remaining NPC girls
 Ellie, Bia, Slime (+ wild), Manglelie, Luna (fishing), Bee (chest, dialogue, world data), Allie
@@ -169,7 +178,7 @@ Ellie, Bia, Slime (+ wild), Manglelie, Luna (fishing), Bee (chest, dialogue, wor
 ### Phase 5: Complex girls
 - **Kobold:** tribes as `SavedData`, eggs, tribe UI, mining / tree felling (likely `Brain`), dragon staff + dragon.
 - **Goblin:** shoulder riding (passenger + first-person render), gesture pad, lair + locate command.
-- **Galath:** flight + HUD, pounce / back-off, particles, coin, damage source.
+- **Galath:** flight + HUD, pounce / back-off, escape minigame HUD, particles, coin, damage source.
 
 **Exit:** each at parity; dedicated server boots.
 
@@ -201,3 +210,5 @@ update checker for 26.3 releases; translations; docs.
 
 ## Later (out of scope until Phase 8 is done)
 Ideas noted during the rebuild. Nothing here gets built before parity.
+- Armour colours beyond 1.12's four: the girl textures have an unused fourth column (offset 3)
+  that looks like chainmail; netherite and copper have no column and show as diamond.

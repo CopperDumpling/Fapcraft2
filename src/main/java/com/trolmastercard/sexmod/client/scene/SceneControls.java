@@ -95,6 +95,16 @@ public final class SceneControls {
         if (next != null) requestStep(girl, action, next);
     }
 
+    /**
+     * A fast loop's {@code *Done} event: back to the slow step, unless sneak is still held. 1.12.2
+     * dropped to the slow step and straight back on the client within a tick; through the server
+     * that round trip showed the slow step for a moment every loop, so the fast loop just carries on.
+     */
+    public static void endFastLoop(GirlEntity girl, GirlAction fast, GirlAction slow) {
+        if (Minecraft.getInstance().options.keyShift.isDown() && girl.sneakStep(slow) == fast) return;
+        requestStep(girl, fast, slow);
+    }
+
     /** Sends a step request once per step (also used by animation events). */
     public static void requestStep(GirlEntity girl, GirlAction from, GirlAction to) {
         if (requestedFrom == from) return;
