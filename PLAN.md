@@ -52,6 +52,7 @@ Each NPC girl has a player variant, a GeckoLib model, a renderer and scene anima
 | Manglelie | `ManglelieEntity` | - | |
 | Dragon | `DragonEntity` | - | Breath particle |
 | Cummy | `CummyEntity` | - | Effect entity |
+| Pyrocinical | `BasicGirlEntity` | - | Rare ambient Nether wanderer; player hits stop it and remove it 6.25 s later |
 
 Shared base: `BaseGirlEntity` (1.8k lines), `AbstractGirlNpcEntity`, `AbstractPlayerGirlEntity`,
 `AbstractNpcOnlyEntity`, `BasicGirlEntity`, `BodyParts`, `BoneType`, `NpcType`, colours, kobold names.
@@ -173,12 +174,13 @@ it); the importer pins 1583 such channels at t=0 (`hold_first_keyframes`).
 
 ### Phase 4: Remaining NPC girls
 Ellie, Bia, Slime (+ wild), Manglelie, Luna (fishing), Bee (chest, dialogue, world data), Allie
-(lamp, wishes, world data), each at parity before the next. **Exit:** all simple girls at parity.
+(lamp, wishes, world data), the pyrocinical, each at parity before the next. **Exit:** all simple
+girls at parity.
 
 **4a: Ellie (done)**
-- [x] Basics (done; dress up is only reachable after the potion route undresses her): spawn egg, renderer (her armour bones incl. headband,
-  hotpants, slip), weapon grip, crouch walk/idle and lower eyes under a block two above her feet,
-  companion lines, dress up.
+- [x] Basics (done): spawn egg, renderer (her armour bones incl. headband, hotpants, slip),
+  weapon grip, crouch walk/idle and lower eyes under a block two above her feet, companion lines,
+  dress up (reachable once the potion route has undressed her).
 - [x] Carried scene, "Face fuck" (done): walk-in, intro (partner lifted at
   110 ticks, loop at 191), four random slow loops ⇄ fast on sneak, climax on a full meter + jump.
   First-person camera on her `boyCam` bone (client `Camera` mixin).
@@ -187,6 +189,8 @@ Ellie, Bia, Slime (+ wild), Manglelie, Luna (fishing), Bee (chest, dialogue, wor
   tracking; whoever steps within 1.5 gets the scene (black transition), and she ends nude.
 - Changed: she faces the player during the dash (1.12 left out the +90 its other turn code has);
   she is put on the seat if she can't reach it in 10 s (as Jenny at her bed).
+- Changed: her chat lines are lang keys (1.12 hard-coded some English); the attack swing sound
+  (`attackSound`, missing from Jenny's port too) now plays for every girl.
 
 **4b: Bia (done)**
 - [x] Spawn egg, renderer (leaves under a helmet, bra and slip under armour), Jenny's weapon grip,
@@ -200,7 +204,7 @@ Ellie, Bia, Slime (+ wild), Manglelie, Luna (fishing), Bee (chest, dialogue, wor
 - Changed: the post-talk answer, bed preparation and doggy stretch timers run on the server
   (1.12 drove them from client animation events).
 
-**4c: Slime + wild slime (built, awaiting in-game check)**
+**4c: Slime + wild slime (done)**
 - [x] Slime girl: not a companion (no menu, orders, goals, weapons or regeneration); spawns in
   swamps; hops every 100 ticks; progress from random hops (1: undress, 2+: hunts the nearest
   player with hearts) or the potion (straight to 2); touch at 2+ → blowjob, at 4+ she waits on
@@ -210,13 +214,23 @@ Ellie, Bia, Slime (+ wild), Manglelie, Luna (fishing), Bee (chest, dialogue, wor
   sparkles from 5880 ticks, clouds from 7980, grows into a slime girl at 8400; tiny-slime drops.
 - Changed: undress and getting down are timed on the server; a second player touching her mid-scene
   no longer hijacks it.
-- Changed: her chat lines are lang keys (1.12 hard-coded some English); the attack swing sound
-  (`attackSound`, missing from Jenny's port too) now plays for every girl.
+
+**4d: Manglelie, wild (built, awaiting in-game check)**
+- [x] Ambient Nether spawn (weight 5), at least 700 blocks from any earlier Galath or Manglelie
+  spawn (`NetherSpawns`, 1.12 "galath_spawn_list"); not a companion; base AI plus fleeing players
+  within 20 blocks (scared run); immune to potion effects; skirt bone rules (skirted hips, strips
+  following cheeks and legs).
+- Moved to Galath (Phase 5): adoption, riding Galath's head, the corruption beam and arrow, the
+  threesome, damage forwarded to her Galath, the angry face. They all need a Galath.
+- Not ported: 1.12's skirt-strip and chest-cloth meshes (never called) and its wing mesh for her
+  (cast her to a Galath interface she lacks).
 
 ### Phase 5: Complex girls
 - **Kobold:** tribes as `SavedData`, eggs, tribe UI, mining / tree felling (likely `Brain`), dragon staff + dragon.
 - **Goblin:** shoulder riding (passenger + first-person render), gesture pad, lair + locate command.
-- **Galath:** flight + HUD, pounce / back-off, escape minigame HUD, particles, coin, damage source.
+- **Galath:** flight + HUD, pounce / back-off, escape minigame HUD, particles, coin, damage source;
+  with Manglelie: adoption, riding Galath's head, the corruption beam + arrow, the threesome,
+  Mang's damage forwarded to her Galath, the angry face, Mang not fleeing near a mastered Galath.
 
 **Exit:** each at parity; dedicated server boots.
 

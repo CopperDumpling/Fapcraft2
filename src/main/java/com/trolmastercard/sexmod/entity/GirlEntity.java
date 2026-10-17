@@ -620,9 +620,8 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
 
     @Override
     protected void registerGoals() {
-        if (!isCompanion()) return; // 1.12.2's slime had no AI tasks at all
         this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(1, new FollowMasterGoal(this));
+        if (isCompanion()) this.goalSelector.addGoal(1, new FollowMasterGoal(this));
         this.goalSelector.addGoal(2, alone(new TemptGoal(this, 0.4, stack -> isTemptItem(stack), false)));
         this.goalSelector.addGoal(3, new OpenDoorGoal(this, true));
         this.goalSelector.addGoal(5, idleOnly(new LookAtPlayerGoal(this, Player.class, 3.0F, 1.0F)));

@@ -21,6 +21,8 @@ public final class ModItems {
         "bia_spawn_egg", SpawnEggItem::new, p -> p.spawnEgg(ModEntities.BIA.get()));
     public static final DeferredItem<SpawnEggItem> SLIME_SPAWN_EGG = ITEMS.registerItem(
         "slime_spawn_egg", SpawnEggItem::new, p -> p.spawnEgg(ModEntities.SLIME.get()));
+    public static final DeferredItem<SpawnEggItem> MANGLELIE_SPAWN_EGG = ITEMS.registerItem(
+        "manglelie_spawn_egg", SpawnEggItem::new, p -> p.spawnEgg(ModEntities.MANGLELIE.get()));
 
     private ModItems() {
     }
@@ -34,6 +36,7 @@ public final class ModItems {
                 event.accept(ELLIE_SPAWN_EGG);
                 event.accept(BIA_SPAWN_EGG);
                 event.accept(SLIME_SPAWN_EGG);
+                event.accept(MANGLELIE_SPAWN_EGG);
             }
         }
     }

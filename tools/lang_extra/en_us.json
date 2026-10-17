@@ -22,5 +22,6 @@
   "bia.dialogue.nobedinsight": "no bed in sight...",
   "bia.dialogue.bedobscured": "bed is obscured...",
   "item.sexmod.slime_spawn_egg": "Slime Spawn Egg",
-  "entity.sexmod.friendly_slime": "Wild Slime"
+  "entity.sexmod.friendly_slime": "Wild Slime",
+  "item.sexmod.manglelie_spawn_egg": "Manglelie Spawn Egg"
 }

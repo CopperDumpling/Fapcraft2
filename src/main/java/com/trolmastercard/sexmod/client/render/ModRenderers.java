@@ -4,6 +4,7 @@ import com.trolmastercard.sexmod.Fapcraft;
 import com.trolmastercard.sexmod.client.render.slime.WildSlimeModel;
 import com.trolmastercard.sexmod.client.render.slime.WildSlimeRenderer;
 import com.trolmastercard.sexmod.entity.ellie.EllieEntity;
+import com.trolmastercard.sexmod.entity.manglelie.ManglelieEntity;
 import com.trolmastercard.sexmod.entity.slime.SlimeEntity;
 import com.trolmastercard.sexmod.registry.ModEntities;
 import java.util.List;
@@ -64,6 +65,9 @@ public final class ModRenderers {
         event.registerEntityRenderer(ModEntities.SLIME.get(), ctx -> new GirlRenderer<SlimeEntity>(ctx, new GirlModel<>("slime", "armored", "nude"), JENNY_WEAPON, SLIME_ARMOR)
             .withRenderLayer(SlimeLayer::new));
         event.registerEntityRenderer(ModEntities.WILD_SLIME.get(), WildSlimeRenderer::new);
+        // one model for every outfit; she never wears armour or holds weapons
+        event.registerEntityRenderer(ModEntities.MANGLELIE.get(), ctx -> new GirlRenderer<ManglelieEntity>(ctx,
+            new GirlModel<>("manglelie", "manglelie", "manglelie"), JENNY_WEAPON, ArmorLayer.Bones.NONE).withRenderLayer(ManglelieLayer::new));
     }
 
     @SubscribeEvent

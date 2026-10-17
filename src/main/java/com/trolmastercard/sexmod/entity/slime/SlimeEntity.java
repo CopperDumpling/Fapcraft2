@@ -100,6 +100,11 @@ public class SlimeEntity extends GirlEntity {
     }
 
     @Override
+    protected void registerGoals() {
+        // 1.12.2's slime had no AI tasks at all: she only hops
+    }
+
+    @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(DATA_PROGRESS, 0);

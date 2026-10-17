@@ -4,6 +4,7 @@ import com.trolmastercard.sexmod.Fapcraft;
 import com.trolmastercard.sexmod.entity.bia.BiaEntity;
 import com.trolmastercard.sexmod.entity.ellie.EllieEntity;
 import com.trolmastercard.sexmod.entity.jenny.JennyEntity;
+import com.trolmastercard.sexmod.entity.manglelie.ManglelieEntity;
 import com.trolmastercard.sexmod.entity.slime.SlimeEntity;
 import com.trolmastercard.sexmod.entity.slime.WildSlimeEntity;
 import net.minecraft.world.entity.EntityType;
@@ -35,6 +36,9 @@ public final class ModEntities {
     // 1.12.2: the default 0.6 x 1.8; spawns in swamps (biome modifier slime_spawns)
     public static final DeferredHolder<EntityType<?>, EntityType<SlimeEntity>> SLIME = ENTITIES.registerEntityType(
         "slime", SlimeEntity::new, MobCategory.CREATURE, b -> b.sized(0.6F, 1.8F).clientTrackingRange(4));
+    // 1.12.2: the default 0.6 x 1.8; an ambient Nether spawn (biome modifier manglelie_spawns)
+    public static final DeferredHolder<EntityType<?>, EntityType<ManglelieEntity>> MANGLELIE = ENTITIES.registerEntityType(
+        "manglelie", ManglelieEntity::new, MobCategory.AMBIENT, b -> b.sized(0.6F, 1.8F).clientTrackingRange(4));
     // 1.12.2 friendly_slime: a vanilla-sized slime cube (0.51 per size)
     public static final DeferredHolder<EntityType<?>, EntityType<WildSlimeEntity>> WILD_SLIME = ENTITIES.registerEntityType(
         "friendly_slime", WildSlimeEntity::new, MobCategory.CREATURE, b -> b.sized(0.52F, 0.52F).eyeHeight(0.325F).clientTrackingRange(10));
@@ -51,12 +55,15 @@ public final class ModEntities {
             event.put(BIA.get(), BiaEntity.createAttributes().build());
             event.put(SLIME.get(), SlimeEntity.createAttributes().build());
             event.put(WILD_SLIME.get(), Monster.createMonsterAttributes().build());
+            event.put(MANGLELIE.get(), ManglelieEntity.createAttributes().build());
         }
 
         @SubscribeEvent
         static void onRegisterSpawnPlacements(RegisterSpawnPlacementsEvent event) {
             event.register(SLIME.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 Mob::checkMobSpawnRules, RegisterSpawnPlacementsEvent.Operation.REPLACE);
+            event.register(MANGLELIE.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                ManglelieEntity::checkSpawnRules, RegisterSpawnPlacementsEvent.Operation.REPLACE);
         }
     }
 }
