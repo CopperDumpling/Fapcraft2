@@ -7,7 +7,7 @@
 - animations/ -> assets/sexmod/geckolib/animations/
 - textures/, sounds/ (*.ogg) + sounds.json, models/item -> same place
 - lang/*.lang -> lang/*.json with 26.3 translation keys, plus tools/lang_extra/<lang>.json
-- loot_tables/ -> data/sexmod/loot_table/entities/ (26.3 loot format)
+- loot_tables/ -> data/sexmod/loot_table/entities/ (26.3 loot format), plus tools/loot_extra/*.json (already 26.3)
 - structures/  -> data/sexmod/structure/ (old templates are datafixed on load)
 - recipes/, blockstates/ -> pending/ (moved into resources once their item/block exists)
 
@@ -224,6 +224,9 @@ def main():
     loot.mkdir(parents=True)
     for f in sorted((OLD / "loot_tables").glob("*.json")):
         convert_loot(f, loot / f.name)
+    # tables for entities 1.12.2 gave vanilla drops in code (already in the 26.3 format)
+    for f in sorted((ROOT / "tools/loot_extra").glob("*.json")):
+        shutil.copy2(f, loot / f.name)
     report["loot_table"] = len(list(loot.iterdir()))
 
     if PENDING.exists():

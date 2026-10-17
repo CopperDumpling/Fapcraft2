@@ -20,5 +20,7 @@
   "bia.dialogue.newhome": "I am living here now nya~",
   "bia.dialogue.comehere": "come here big boy~",
   "bia.dialogue.nobedinsight": "no bed in sight...",
-  "bia.dialogue.bedobscured": "bed is obscured..."
+  "bia.dialogue.bedobscured": "bed is obscured...",
+  "item.sexmod.slime_spawn_egg": "Slime Spawn Egg",
+  "entity.sexmod.friendly_slime": "Wild Slime"
 }

@@ -1,7 +1,10 @@
 package com.trolmastercard.sexmod.client.render;
 
 import com.trolmastercard.sexmod.Fapcraft;
+import com.trolmastercard.sexmod.client.render.slime.WildSlimeModel;
+import com.trolmastercard.sexmod.client.render.slime.WildSlimeRenderer;
 import com.trolmastercard.sexmod.entity.ellie.EllieEntity;
+import com.trolmastercard.sexmod.entity.slime.SlimeEntity;
 import com.trolmastercard.sexmod.registry.ModEntities;
 import java.util.List;
 import net.neoforged.api.distmarker.Dist;
@@ -40,6 +43,14 @@ public final class ModRenderers {
             List.of("slip", "fleshL", "fleshR", "vagina", "curvesL", "curvesR", "kneeL", "kneeR")),
         new ArmorLayer.Part(List.of("armorShoesL", "armorShoesR"), List.of()));
 
+    /** 1.12.2 {@code SlimeNpcModel}: her blob under a helmet, her cloth under a chestplate. She never wears armour or holds weapons. */
+    private static final ArmorLayer.Bones SLIME_ARMOR = new ArmorLayer.Bones(
+        new ArmorLayer.Part(List.of("armorHelmet"), List.of("bigblob")),
+        new ArmorLayer.Part(List.of("armorShoulderR", "armorShoulderL", "armorChest", "armorBoobs"), List.of("boobsFlesh", "upperBodyL", "upperBodyR", "cloth")),
+        new ArmorLayer.Part(List.of("armorBootyR", "armorBootyL", "armorPantsLowL", "armorPantsLowR", "armorPantsUpR", "armorPantsUpL", "armorHip"),
+            List.of("fleshL", "fleshR", "vagina", "curvesL", "curvesR", "kneeL", "kneeR")),
+        new ArmorLayer.Part(List.of("armorShoesL", "armorShoesR"), List.of()));
+
     private ModRenderers() {
     }
 
@@ -49,5 +60,14 @@ public final class ModRenderers {
         event.registerEntityRenderer(ModEntities.ELLIE.get(), ctx -> new GirlRenderer<EllieEntity>(ctx, new GirlModel<>("ellie", "dressed", "nude"), ELLIE_WEAPON, ELLIE_ARMOR)
             .withRenderLayer(EllieHeadLayer::new));
         event.registerEntityRenderer(ModEntities.BIA.get(), ctx -> new GirlRenderer<>(ctx, new GirlModel<>("bia"), JENNY_WEAPON, BIA_ARMOR));
+        // 1.12.2 dressed the slime in her "armored" model (outfit 1); "dressed" was never used
+        event.registerEntityRenderer(ModEntities.SLIME.get(), ctx -> new GirlRenderer<SlimeEntity>(ctx, new GirlModel<>("slime", "armored", "nude"), JENNY_WEAPON, SLIME_ARMOR)
+            .withRenderLayer(SlimeLayer::new));
+        event.registerEntityRenderer(ModEntities.WILD_SLIME.get(), WildSlimeRenderer::new);
+    }
+
+    @SubscribeEvent
+    static void onRegisterLayers(EntityRenderersEvent.RegisterLayerDefinitions event) {
+        event.registerLayerDefinition(WildSlimeModel.LAYER, WildSlimeModel::createLayer);
     }
 }

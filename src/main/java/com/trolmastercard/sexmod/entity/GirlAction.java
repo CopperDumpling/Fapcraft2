@@ -56,6 +56,8 @@ public enum GirlAction {
     MISSIONARY_SLOW(2, true, false),
     MISSIONARY_FAST(2, true, false),
     MISSIONARY_CUM(2, true, false),
+    // Slime: undresses on her own (pregnancy progress or the potion)
+    UNDRESS(2, false, true),
     // Bia: talk, headpat, and anal / prone doggy on a bed
     TALK_HORNY(5, true, false),
     TALK_IDLE(0, true, true),

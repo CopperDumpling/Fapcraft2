@@ -132,8 +132,10 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
         super(type, level);
         this.getNavigation().setCanOpenDoors(true);
         // 1.12.2: every NPC girl starts with an iron sword and a bow
-        this.inventory.setItem(GirlSlot.WEAPON.index(), new ItemStack(Items.IRON_SWORD));
-        this.inventory.setItem(GirlSlot.BOW.index(), new ItemStack(Items.BOW));
+        if (isCompanion()) {
+            this.inventory.setItem(GirlSlot.WEAPON.index(), new ItemStack(Items.IRON_SWORD));
+            this.inventory.setItem(GirlSlot.BOW.index(), new ItemStack(Items.BOW));
+        }
     }
 
     public static AttributeSupplier.Builder createGirlAttributes() {
@@ -142,6 +144,20 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
             .add(Attributes.MOVEMENT_SPEED, 0.5)
             .add(Attributes.FOLLOW_RANGE, 30.0)
             .add(Attributes.TEMPT_RANGE, 10.0); // 26.3 TemptGoal needs it; 1.12.2 tempted within 10 blocks
+    }
+
+    /**
+     * Whether she is a companion (1.12.2 {@code AbstractGirlNpcEntity}): armed, with the shared AI
+     * goals, a menu, regeneration and the follow / home / equipment orders. False for girls that
+     * only act on their own (the slime). Constant: it is read during construction.
+     */
+    protected boolean isCompanion() {
+        return true;
+    }
+
+    /** Whether {@code player} is the partner of any girl near them. */
+    public static boolean inScene(Player player) {
+        return !player.level().getEntitiesOfClass(GirlEntity.class, player.getBoundingBox().inflate(16.0), girl -> girl.isPartner(player)).isEmpty();
     }
 
     /** Prefix of this girl's animation names, e.g. {@code "animation.jenny."}. */
@@ -570,7 +586,7 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
     /** Server, every tick: regeneration, the downed state, timed companion actions and the equipment copies. */
     private void tickCompanion() {
         if (this.home == null) this.home = this.position(); // where she spawned
-        if (this.tickCount % 80 == 0 && getHealth() < getMaxHealth()) {
+        if (isCompanion() && this.tickCount % 80 == 0 && getHealth() < getMaxHealth()) {
             if (!hasMaster()) {
                 heal(1.0F);
             } else {
@@ -604,6 +620,7 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
 
     @Override
     protected void registerGoals() {
+        if (!isCompanion()) return; // 1.12.2's slime had no AI tasks at all
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(1, new FollowMasterGoal(this));
         this.goalSelector.addGoal(2, alone(new TemptGoal(this, 0.4, stack -> isTemptItem(stack), false)));
@@ -628,6 +645,7 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
 
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
+        if (!isCompanion()) return InteractionResult.PASS;
         if (hand != InteractionHand.MAIN_HAND) return InteractionResult.PASS;
         if (this.level().isClientSide()) {
             if (isBusy() || !takesOrdersFrom(player)) {
@@ -996,8 +1014,12 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
     }
 
     private PlayState eyesState(AnimationTest<GirlEntity> test) {
-        boolean blink = getAction() == GirlAction.NULL && getAction().autoBlink;
-        return test.setAndContinue(loop(blink ? blinkAnimationName() : "null"));
+        return test.setAndContinue(loop(blinks(getAction()) ? blinkAnimationName() : "null"));
+    }
+
+    /** Whether the eyes controller blinks during {@code action}. */
+    protected boolean blinks(GirlAction action) {
+        return action == GirlAction.NULL && action.autoBlink;
     }
 
     private PlayState actionState(AnimationTest<GirlEntity> test) {

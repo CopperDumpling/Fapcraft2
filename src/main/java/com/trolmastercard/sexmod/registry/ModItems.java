@@ -19,6 +19,8 @@ public final class ModItems {
         "ellie_spawn_egg", SpawnEggItem::new, p -> p.spawnEgg(ModEntities.ELLIE.get()));
     public static final DeferredItem<SpawnEggItem> BIA_SPAWN_EGG = ITEMS.registerItem(
         "bia_spawn_egg", SpawnEggItem::new, p -> p.spawnEgg(ModEntities.BIA.get()));
+    public static final DeferredItem<SpawnEggItem> SLIME_SPAWN_EGG = ITEMS.registerItem(
+        "slime_spawn_egg", SpawnEggItem::new, p -> p.spawnEgg(ModEntities.SLIME.get()));
 
     private ModItems() {
     }
@@ -31,6 +33,7 @@ public final class ModItems {
                 event.accept(JENNY_SPAWN_EGG);
                 event.accept(ELLIE_SPAWN_EGG);
                 event.accept(BIA_SPAWN_EGG);
+                event.accept(SLIME_SPAWN_EGG);
             }
         }
     }

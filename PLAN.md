@@ -188,7 +188,7 @@ Ellie, Bia, Slime (+ wild), Manglelie, Luna (fishing), Bee (chest, dialogue, wor
 - Changed: she faces the player during the dash (1.12 left out the +90 its other turn code has);
   she is put on the seat if she can't reach it in 10 s (as Jenny at her bed).
 
-**4b: Bia (built, awaiting in-game check)**
+**4b: Bia (done)**
 - [x] Spawn egg, renderer (leaves under a helmet, bra and slip under armour), Jenny's weapon grip,
   free strip / dress up, new-home line, brown wool on death.
 - [x] Headpat; talk → anal / doggy menu (closing it ends the talk, as 1.12).
@@ -199,6 +199,17 @@ Ellie, Bia, Slime (+ wild), Manglelie, Luna (fishing), Bee (chest, dialogue, wor
   Camera on her `boyCam` bone.
 - Changed: the post-talk answer, bed preparation and doggy stretch timers run on the server
   (1.12 drove them from client animation events).
+
+**4c: Slime + wild slime (built, awaiting in-game check)**
+- [x] Slime girl: not a companion (no menu, orders, goals, weapons or regeneration); spawns in
+  swamps; hops every 100 ticks; progress from random hops (1: undress, 2+: hunts the nearest
+  player with hearts) or the potion (straight to 2); touch at 2+ → blowjob, at 4+ she waits on
+  all fours → doggy; a finished scene makes her pregnant (2400 ticks → wild slime) and she
+  dresses again. Slime puddle bones during doggy; hat follows the head.
+- [x] Wild slime (`friendly_slime`): a vanilla cube mob that never attacks, tiny, with a tail;
+  sparkles from 5880 ticks, clouds from 7980, grows into a slime girl at 8400; tiny-slime drops.
+- Changed: undress and getting down are timed on the server; a second player touching her mid-scene
+  no longer hijacks it.
 - Changed: her chat lines are lang keys (1.12 hard-coded some English); the attack swing sound
   (`attackSound`, missing from Jenny's port too) now plays for every girl.
 

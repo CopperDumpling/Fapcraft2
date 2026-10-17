@@ -46,6 +46,7 @@ Minecraft 26.3 · NeoForge 26.3.0.86 (ModDevGradle) · GeckoLib 5.5.7 · Java 25
 ## Assets
 - Imported from 1.12.2 by `python3 -I tools/import_assets.py ../Jenny-Mod-Fapcraft` (re-runnable;
   converts lang/loot/recipes, generates `sound/ModSounds.java`). Never hand-edit its outputs: fix
-  the script, or add new strings to `tools/lang_extra/<lang>.json`.
+  the script, or add new strings to `tools/lang_extra/<lang>.json` (new loot tables:
+  `tools/loot_extra/`).
 - `pending/` holds converted data whose item/block isn't registered yet (recipes, blockstates).
   Move a file into `src/main/resources` in the same change that registers its owner.
