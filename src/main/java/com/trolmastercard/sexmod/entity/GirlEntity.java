@@ -1002,7 +1002,7 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
     }
 
     private PlayState movementState(AnimationTest<GirlEntity> test) {
-        if (getAction() != GirlAction.NULL && getAction() != GirlAction.WALK_TO_BED) return test.setAndContinue(loop("null"));
+        if (getAction() != GirlAction.NULL && getAction() != GirlAction.WALK_TO_BED) return rest(test);
         if (this.isPassenger()) return test.setAndContinue(loop("sit"));
         return test.setAndContinue(loop(movementAnimation(test.isMoving())));
     }
@@ -1013,7 +1013,17 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
     }
 
     private PlayState eyesState(AnimationTest<GirlEntity> test) {
-        return test.setAndContinue(loop(blinks(getAction()) ? blinkAnimationName() : "null"));
+        return blinks(getAction()) ? test.setAndContinue(loop(blinkAnimationName())) : rest(test);
+    }
+
+    /** A controller with nothing to play: her empty {@code null} animation, or stopped if she has none. */
+    private PlayState rest(AnimationTest<GirlEntity> test) {
+        return hasEmptyNullAnimation() ? test.setAndContinue(loop("null")) : PlayState.STOP;
+    }
+
+    /** Whether her {@code null} animation is empty; Manglelie's isn't, so her idle controllers stop instead. */
+    protected boolean hasEmptyNullAnimation() {
+        return true;
     }
 
     /** Whether the eyes controller blinks during {@code action}. */
@@ -1024,12 +1034,11 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
     private PlayState actionState(AnimationTest<GirlEntity> test) {
         GirlAction action = getAction();
         RawAnimation raw = actionAnimation(action);
-        RawAnimation animation = raw == null ? loop("null") : raw;
         test.controller().setTransitionTicks(action.transitionTicks);
         if (this.restartAction) {
             this.restartAction = false;
             test.controller().reset();
         }
-        return test.setAndContinue(animation);
+        return raw == null ? rest(test) : test.setAndContinue(raw);
     }
 }

@@ -215,15 +215,16 @@ girls at parity.
 - Changed: undress and getting down are timed on the server; a second player touching her mid-scene
   no longer hijacks it.
 
-**4d: Manglelie, wild (built, awaiting in-game check)**
+**4d: Manglelie, wild (done)**
 - [x] Ambient Nether spawn (weight 5), at least 700 blocks from any earlier Galath or Manglelie
   spawn (`NetherSpawns`, 1.12 "galath_spawn_list"); not a companion; base AI plus fleeing players
-  within 20 blocks (scared run); immune to potion effects; skirt bone rules (skirted hips, strips
-  following cheeks and legs).
+  within 20 blocks (scared run); immune to potion effects; idle controllers stop rather than play
+  her `null` animation (it swings her legs). Clothes: skirted hips; the skirt is 40 flat-coloured
+  strips drawn between the `skirt_*` bones (they have no cubes), following cheeks and legs; three
+  chest bands between the `clothBoob*con*` bones.
 - Moved to Galath (Phase 5): adoption, riding Galath's head, the corruption beam and arrow, the
   threesome, damage forwarded to her Galath, the angry face. They all need a Galath.
-- Not ported: 1.12's skirt-strip and chest-cloth meshes (never called) and its wing mesh for her
-  (cast her to a Galath interface she lacks).
+- Not ported: 1.12's wing mesh for her (cast her to a Galath interface she lacks).
 
 ### Phase 5: Complex girls
 - **Kobold:** tribes as `SavedData`, eggs, tribe UI, mining / tree felling (likely `Brain`), dragon staff + dragon.

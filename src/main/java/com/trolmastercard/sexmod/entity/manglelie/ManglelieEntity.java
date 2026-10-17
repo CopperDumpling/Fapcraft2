@@ -123,7 +123,13 @@ public class ManglelieEntity extends GirlEntity {
 
     @Override
     protected @Nullable RawAnimation actionAnimation(GirlAction action) {
-        return action == GirlAction.NULL ? loop("null") : null;
+        return null; // her scenes come with Galath
+    }
+
+    /** Her {@code null} animation swings her legs, so 1.12.2 stopped idle controllers instead. */
+    @Override
+    protected boolean hasEmptyNullAnimation() {
+        return false;
     }
 
     @Override
