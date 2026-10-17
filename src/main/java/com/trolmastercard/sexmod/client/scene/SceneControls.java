@@ -107,13 +107,19 @@ public final class SceneControls {
         GirlEntity current = currentGirl();
         boolean frozen = current != null && !current.isSolo();
         if (frozen && !(player.input instanceof FrozenInput)) {
-            // takes effect next tick; this tick's movement is cleared below. Sneak and jump are
-            // read straight from the key mappings in onClientTick.
+            // aiStep reads the field after this event, so the swap applies this tick. Sneak and
+            // jump are read straight from the key mappings in onClientTick.
             player.input = new FrozenInput();
         } else if (!frozen && player.input instanceof FrozenInput) {
             player.input = new KeyboardInput(Minecraft.getInstance().options);
         }
-        if (frozen) event.getInput().keyPresses = Input.EMPTY;
+        if (frozen) {
+            event.getInput().keyPresses = Input.EMPTY;
+            // momentum from before the freeze (walking or sprinting in) would otherwise slide the
+            // partner off the spot the scene placed them on
+            player.setSprinting(false);
+            player.setDeltaMovement(0.0, player.getDeltaMovement().y, 0.0);
+        }
     }
 
     /** An input with no keys and no movement (the base {@code ClientInput} never updates). */
