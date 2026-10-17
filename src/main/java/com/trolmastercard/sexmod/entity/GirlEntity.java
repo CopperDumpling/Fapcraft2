@@ -259,6 +259,11 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
         return false;
     }
 
+    /** Whether closing the mid-scene menu without picking ends the scene (1.12.2 Bia's {@code ac}; Ellie kept hugging). */
+    public boolean endsOnDeclinedChoice() {
+        return false;
+    }
+
     /** Server: her partner picked {@code option} while she {@link #awaitsChoice()}. */
     public void chooseMidScene(ServerPlayer player, SceneOption option) {
     }
@@ -941,6 +946,12 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
         controllers.add(new AnimationController<>("eyes", 10, this::eyesState));
         controllers.add(new AnimationController<GirlEntity>("action", 0, this::actionState)
             .setSoundKeyframeHandler(event -> onAnimationEvent(event.keyframeData().getSound())));
+    }
+
+    /** Client: starts the current scene step's animation over (1.12.2 {@code resetAnimationControllerOffset}). */
+    public void restartActionAnimation() {
+        AnimationController<?> controller = this.animationCache.getManagerForId(getId()).getAnimationControllers().get("action");
+        if (controller != null) controller.reset();
     }
 
     /** 1.12.2's animations put scene events in sound keyframes ({@code bjiDone}, ...). Client only. */

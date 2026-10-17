@@ -175,18 +175,30 @@ it); the importer pins 1583 such channels at t=0 (`hold_first_keyframes`).
 Ellie, Bia, Slime (+ wild), Manglelie, Luna (fishing), Bee (chest, dialogue, world data), Allie
 (lamp, wishes, world data), each at parity before the next. **Exit:** all simple girls at parity.
 
-**4a: Ellie**
+**4a: Ellie (done)**
 - [x] Basics (done; dress up is only reachable after the potion route undresses her): spawn egg, renderer (her armour bones incl. headband,
   hotpants, slip), weapon grip, crouch walk/idle and lower eyes under a block two above her feet,
   companion lines, dress up.
 - [x] Carried scene, "Face fuck" (done): walk-in, intro (partner lifted at
   110 ticks, loop at 191), four random slow loops ⇄ fast on sneak, climax on a full meter + jump.
   First-person camera on her `boyCam` bone (client `Camera` mixin).
-- [x] Horny-potion route (built, awaiting in-game check): dash at the nearest player within 10,
+- [x] Horny-potion route (done): dash at the nearest player within 10,
   hug from behind, cowgirl/missionary menu, walk to the end of a bed, sit and wait with head
   tracking; whoever steps within 1.5 gets the scene (black transition), and she ends nude.
 - Changed: she faces the player during the dash (1.12 left out the +90 its other turn code has);
   she is put on the seat if she can't reach it in 10 s (as Jenny at her bed).
+
+**4b: Bia (built, awaiting in-game check)**
+- [x] Spawn egg, renderer (leaves under a helmet, bra and slip under armour), Jenny's weapon grip,
+  free strip / dress up, new-home line, brown wool on death.
+- [x] Headpat; talk → anal / doggy menu (closing it ends the talk, as 1.12).
+- [x] Anal: walk to the nearest bed's free side, undress and wait; a player within 1 block for
+  22 ticks gets start, slow ⇄ fast on sneak, climax.
+- [x] Prone doggy: walk to a bed's end, sit and wait; same pickup; intro, sneak to insert (42
+  ticks), soft, hard stretches (34 ticks, three random variants) while sneak is held, climax.
+  Camera on her `boyCam` bone.
+- Changed: the post-talk answer, bed preparation and doggy stretch timers run on the server
+  (1.12 drove them from client animation events).
 - Changed: her chat lines are lang keys (1.12 hard-coded some English); the attack swing sound
   (`attackSound`, missing from Jenny's port too) now plays for every girl.
 

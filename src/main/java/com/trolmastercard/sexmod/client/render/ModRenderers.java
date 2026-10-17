@@ -32,6 +32,14 @@ public final class ModRenderers {
             List.of("fleshL", "fleshR", "vagina", "hotpants", "slip", "curvesL", "curvesR", "kneeL", "kneeR")),
         new ArmorLayer.Part(List.of("armorShoesL", "armorShoesR"), List.of()));
 
+    /** 1.12.2 {@code BiaNpcModel}: her leaves under a helmet, bra and slip under armour. Her weapon grip is Jenny's. */
+    private static final ArmorLayer.Bones BIA_ARMOR = new ArmorLayer.Bones(
+        new ArmorLayer.Part(List.of("armorHelmet"), List.of("leaf7", "leaf8")),
+        new ArmorLayer.Part(List.of("armorChest", "armorBoobs", "armorShoulderR", "armorShoulderL"), List.of("bra", "upperBodyR", "upperBodyL")),
+        new ArmorLayer.Part(List.of("armorBootyR", "armorBootyL", "armorPantsLowL", "armorPantsLowR", "armorPantsUpR", "armorPantsUpL", "armorHip"),
+            List.of("slip", "fleshL", "fleshR", "vagina", "curvesL", "curvesR", "kneeL", "kneeR")),
+        new ArmorLayer.Part(List.of("armorShoesL", "armorShoesR"), List.of()));
+
     private ModRenderers() {
     }
 
@@ -40,5 +48,6 @@ public final class ModRenderers {
         event.registerEntityRenderer(ModEntities.JENNY.get(), ctx -> new GirlRenderer<>(ctx, new GirlModel<>("jenny"), JENNY_WEAPON, JENNY_ARMOR));
         event.registerEntityRenderer(ModEntities.ELLIE.get(), ctx -> new GirlRenderer<EllieEntity>(ctx, new GirlModel<>("ellie", "dressed", "nude"), ELLIE_WEAPON, ELLIE_ARMOR)
             .withRenderLayer(EllieHeadLayer::new));
+        event.registerEntityRenderer(ModEntities.BIA.get(), ctx -> new GirlRenderer<>(ctx, new GirlModel<>("bia"), JENNY_WEAPON, BIA_ARMOR));
     }
 }

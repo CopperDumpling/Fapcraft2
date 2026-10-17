@@ -33,15 +33,27 @@ public final class BedFinder {
     private BedFinder() {
     }
 
-    /** Where she sits on a bed's end, per side (1.12.2 {@code EllieEntity.getRandomSitPose}): seat, the open neighbour, the bed's other half. */
+    /** Where Ellie sits on a bed's end, per side (1.12.2 {@code EllieEntity.getRandomSitPose}). */
     private static final Vec3[] SEAT = {new Vec3(0.5, 0, -0.18), new Vec3(0.5, 0, 1.18), new Vec3(-0.18, 0, 0.5), new Vec3(1.18, 0, 0.5)};
-    private static final BlockPos[] SEAT_OTHER_HALF = {new BlockPos(0, 0, 1), new BlockPos(0, 0, -1), new BlockPos(1, 0, 0), new BlockPos(-1, 0, 0)};
+    /** Per side: the bed's other half, which the open neighbour ({@link #NEIGHBOUR}) is opposite. */
+    private static final BlockPos[] OTHER_HALF = {new BlockPos(0, 0, 1), new BlockPos(0, 0, -1), new BlockPos(1, 0, 0), new BlockPos(-1, 0, 0)};
+
+    /** Ellie's seat on the end of a bed ({@link #planBedEnd}). */
+    public static Plan planSeat(Level level, BlockPos from) {
+        return planBedEnd(level, from, SEAT);
+    }
+
+    /** Bia's spot at the end of a bed, where she lies down along it (1.12.2 {@code BiaEntity.getBedVector}). */
+    public static Plan planBedEndStand(Level level, BlockPos from) {
+        return planBedEnd(level, from, STAND);
+    }
 
     /**
-     * A seat on the end of a bed: on the nearest bed (within 22 blocks, ±3) whose end has open
-     * space in front of it, the side nearest her. Fails with {@link Failure#NO_BED} only.
+     * A spot at the end of a bed: on the nearest bed (within 22 blocks, ±3) whose end has open
+     * space in front of it with the bed running away from it, the side nearest her. Fails with
+     * {@link Failure#NO_BED} only.
      */
-    public static Plan planSeat(Level level, BlockPos from) {
+    private static Plan planBedEnd(Level level, BlockPos from, Vec3[] spots) {
         List<BlockPos> beds = new ArrayList<>();
         for (int dx = -RADIUS; dx <= RADIUS; dx++) {
             for (int dz = -RADIUS; dz <= RADIUS; dz++) {
@@ -55,16 +67,16 @@ public final class BedFinder {
         for (BlockPos bed : beds) {
             int pick = -1;
             double pickDist = Double.MAX_VALUE;
-            for (int i = 0; i < SEAT.length; i++) {
+            for (int i = 0; i < spots.length; i++) {
                 if (!level.getBlockState(bed.offset(NEIGHBOUR[i])).isAir()) continue;
-                if (!level.getBlockState(bed.offset(SEAT_OTHER_HALF[i])).is(BlockTags.BEDS)) continue;
-                double dist = Vec3.atLowerCornerOf(bed).add(SEAT[i]).distanceToSqr(Vec3.atLowerCornerOf(from));
+                if (!level.getBlockState(bed.offset(OTHER_HALF[i])).is(BlockTags.BEDS)) continue;
+                double dist = Vec3.atLowerCornerOf(bed).add(spots[i]).distanceToSqr(Vec3.atLowerCornerOf(from));
                 if (dist < pickDist) {
                     pickDist = dist;
                     pick = i;
                 }
             }
-            if (pick >= 0) return new Plan(Vec3.atLowerCornerOf(bed).add(SEAT[pick]), YAWS[pick], null);
+            if (pick >= 0) return new Plan(Vec3.atLowerCornerOf(bed).add(spots[pick]), YAWS[pick], null);
         }
         return new Plan(null, 0, Failure.NO_BED);
     }

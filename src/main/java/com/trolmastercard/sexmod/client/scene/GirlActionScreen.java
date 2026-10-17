@@ -7,6 +7,7 @@ import com.trolmastercard.sexmod.entity.SceneOption;
 import com.trolmastercard.sexmod.network.ChooseActionPayload;
 import com.trolmastercard.sexmod.network.CompanionOrderPayload;
 import com.trolmastercard.sexmod.network.CompanionOrderPayload.Order;
+import com.trolmastercard.sexmod.network.LeaveScenePayload;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -53,6 +54,7 @@ public class GirlActionScreen extends Screen {
     private final List<OrderButton> orderButtons = new ArrayList<>();
     /** Mid-scene choice: no orders, no equipment (1.12.2 opened the menu "not ready"). */
     private final boolean optionsOnly;
+    private boolean chosen;
     private long openedAt;
     private long lastFrame;
 
@@ -126,8 +128,17 @@ public class GirlActionScreen extends Screen {
     }
 
     private void choose(SceneOption option) {
+        this.chosen = true;
         ClientPacketDistributor.sendToServer(new ChooseActionPayload(this.girl.getId(), option.id()));
         onClose();
+    }
+
+    @Override
+    public void removed() {
+        super.removed();
+        if (this.optionsOnly && !this.chosen && this.girl.endsOnDeclinedChoice()) {
+            ClientPacketDistributor.sendToServer(LeaveScenePayload.INSTANCE);
+        }
     }
 
     @Override
