@@ -26,7 +26,13 @@ public final class TransitionOverlay {
      * setting (x1.5 at scale 2, x2 at scale 1), which comes to about the screen width / 640.
      */
     private static final float DESIGN_WIDTH = 640.0F;
-    private static final double SPEED = 0.75;
+    /**
+     * Timer units per tick. The band fully covers the screen only around 38 units in, and the cut it
+     * hides comes about 20 ticks after it starts (a scene's climax, or stepping up to a girl waiting
+     * on a bed), so it covers then. 1.12.2 advanced 0.75 x the frame's partial ticks, which depended
+     * on frame rate.
+     */
+    private static final double SPEED = 1.875;
     private static final double MIDPOINT = 30.0;
     private static final double END = 69.0;
 
