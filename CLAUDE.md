@@ -2,6 +2,7 @@
 
 Ground-up rebuild of the 1.12.2 Fapcraft mod for Minecraft 26.3. **[PLAN.md](PLAN.md) is the
 source of truth** for phases, the feature inventory and the 1.12 → 26.3 API mapping.
+Make sure PLAN.md is corrected as you make changes. Don't use it to record results, only update the objectives.
 
 ## Stack (pinned in `gradle.properties`, bump only deliberately)
 Minecraft 26.3 · NeoForge 26.3.0.86 (ModDevGradle) · GeckoLib 5.5.7 · Java 25
