@@ -12,6 +12,7 @@ import net.minecraft.client.player.ClientInput;
 import net.minecraft.client.player.KeyboardInput;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.player.Input;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -127,10 +128,12 @@ public final class SceneControls {
         }
         if (frozen) {
             event.getInput().keyPresses = Input.EMPTY;
-            // momentum from before the freeze (walking or sprinting in) would otherwise slide the
-            // partner off the spot the scene placed them on
+            // no momentum and no gravity (1.12.2 zeroed the velocity every input update): walking
+            // in would slide the partner off the spot the scene placed them on, and poses above
+            // the ground would sink
             player.setSprinting(false);
-            player.setDeltaMovement(0.0, player.getDeltaMovement().y, 0.0);
+            player.setDeltaMovement(Vec3.ZERO);
+            player.resetFallDistance();
         }
     }
 
