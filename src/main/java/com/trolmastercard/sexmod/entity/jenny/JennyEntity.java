@@ -13,6 +13,8 @@ import com.trolmastercard.sexmod.sound.ModSounds;
 import com.trolmastercard.sexmod.util.VectorMath;
 import java.util.List;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.item.Items;
@@ -25,8 +27,8 @@ import org.jspecify.annotations.Nullable;
  * Jenny: the blonde sword/bow girl (1.12.2 {@code JennyEntity}).
  * <p>
  * Scenes ported: blowjob (payment, intro, suck ⇄ thrust on sneak, climax on a full meter + jump),
- * boobjob (paizuri: start, slow ⇄ fast on sneak, climax), strip and dress up. Doggy, combat and
- * pearl-home follow in Phase 3.
+ * boobjob (paizuri: start, slow ⇄ fast on sneak, climax), doggy on a bed, strip and dress up,
+ * and the companion behaviour every girl shares ({@link GirlEntity}).
  */
 public class JennyEntity extends GirlEntity {
     private static final List<SceneOption> OPTIONS = List.of(
@@ -105,6 +107,7 @@ public class JennyEntity extends GirlEntity {
             case DOGGYSLOW -> loop("doggyslow");
             case DOGGYFAST -> loop(this.entityData.get(DATA_HARD) ? "doggyfast_hard" : "doggyfast_soft");
             case DOGGYCUM -> once("doggycum");
+            case ATTACK, RIDE, SIT, THROW_PEARL, DOWNED -> companionAnimation(action);
         };
     }
 
@@ -168,6 +171,27 @@ public class JennyEntity extends GirlEntity {
         if (POSE_BLOWJOB.equals(name) && action == GirlAction.STARTBLOWJOB) return BLOWJOB_POSE;
         if (POSE_BOOBJOB.equals(name) && action == GirlAction.PAIZURI_START) return BOOBJOB_POSE;
         return null;
+    }
+
+    @Override
+    protected int attackTicks(int animation) {
+        return animation == 0 ? 7 : 10; // attackDone at 0.32 s / 0.48 s
+    }
+
+    @Override
+    public void onNewHome(ServerPlayer player) {
+        sayTo(player, "newhome");
+        this.level().playSound(null, this, ModSounds.GIRLS_JENNY_HAPPYOH.variant(1).value(), this.getSoundSource(), 1.0F, 1.0F);
+    }
+
+    @Override
+    protected @Nullable SoundEvent getHurtSound(DamageSource source) {
+        return null;
+    }
+
+    @Override
+    protected SoundEvent getDeathSound() {
+        return ModSounds.GIRLS_JENNY_SIGH.random(this.random).value();
     }
 
     @Override

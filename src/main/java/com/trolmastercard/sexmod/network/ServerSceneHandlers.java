@@ -7,10 +7,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jspecify.annotations.Nullable;
 
-/** Server handlers for the scene payloads. Each one re-checks everything the client claims. */
+/** Server handlers for the menu and scene payloads. Each one re-checks everything the client claims. */
 final class ServerSceneHandlers {
     /** Furthest a player may be from a girl to use her menu. */
     private static final double MENU_RANGE = 8.0;
@@ -23,7 +24,7 @@ final class ServerSceneHandlers {
     static void chooseAction(ChooseActionPayload payload, IPayloadContext context) {
         if (!(context.player() instanceof ServerPlayer player)) return;
         GirlEntity girl = girl(player, payload.girlId(), MENU_RANGE);
-        if (girl == null || girl.isBusy()) return;
+        if (girl == null || girl.isBusy() || !girl.takesOrdersFrom(player)) return;
         SceneOption option = girl.availableOptions().stream().filter(o -> o.id().equals(payload.option())).findFirst().orElse(null);
         if (option == null) return;
         if (option.needsBed()) {
@@ -43,6 +44,21 @@ final class ServerSceneHandlers {
             girl.startSolo(player, option);
         } else {
             girl.startScene(player, option);
+        }
+    }
+
+    static void order(CompanionOrderPayload payload, IPayloadContext context) {
+        if (!(context.player() instanceof ServerPlayer player)) return;
+        GirlEntity girl = girl(player, payload.girlId(), MENU_RANGE);
+        if (girl == null || girl.isBusy() || !girl.takesOrdersFrom(player)) return;
+        switch (payload.order()) {
+            case FOLLOW -> girl.setMaster(player);
+            case STOP_FOLLOWING -> girl.clearMaster();
+            case GO_HOME -> girl.goHome();
+            case SET_HOME -> {
+                girl.setHome(Vec3.atBottomCenterOf(girl.blockPosition()));
+                girl.onNewHome(player);
+            }
         }
     }
 

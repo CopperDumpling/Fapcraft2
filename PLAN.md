@@ -220,8 +220,36 @@ and then settled. The importer now pins those 1583 channels at t=0 (`hold_first_
   she gets teleported to the bed if she can't reach it in 10 s; the wait ends after 5 minutes;
   her bed-time lines and timing are server-side because no partner client is in the scene yet.
 
-**3c: ownership, home, combat.** Master/ownership attachment, follow me / go home / set home
-(pearl throw), health and downed state, sword/bow attacks (`ATTACK`, `BOW`, `DOWNED`), death sound.
+**3c: ownership, home, combat (built, awaiting in-game check)**
+- [x] Follow me / stop following me / go home / set new home on the menu (`CompanionOrderPayload`;
+  the server checks range, busy and that only her master gives orders). Her master is synced
+  data, not an attachment: 1.12.2 never saved it, and she stops following when the master leaves
+  the level. Her home (spawn point until set) is saved.
+- [x] `FollowMasterGoal` (1.12 `GirlFollowGoal`): follow and match the master's pace, run/walk
+  animations, teleport back when out of path range, wander near the master, ride along (boat
+  passenger → `SIT`; behind the master on a horse → `RIDE`), fight attackers of either of them and
+  nearby monsters (not creepers): sword up close with the weapon's damage, enchantments and
+  sweeping; bow beyond 6 blocks.
+- [x] Go home: she faces home, throws an ender pearl (19 ticks in), and arrives at the landing point
+  if it is within 5 blocks of home, otherwise at home (58 ticks in).
+- [x] Health: regeneration every 4 s (faster with a master and no monsters nearby, with hearts);
+  with a master, lethal damage downs her at 1 HP (`DOWNED`) until she is fully healed; no damage
+  during scenes; a scene partner standing at her is protected too. Death drops her weapon, bow and
+  armour slots; Jenny's death sigh, no hurt sound.
+- [x] Held weapon/bow drawn on the `weapon` bone with 1.12's per-girl angles (`HeldWeaponLayer`).
+  GeckoLib 3 and 5 bone spaces may differ: check the grip in game.
+- Changed from 1.12: the attack animation's end and the pearl's throw/arrival are timed on the
+  server (a dedicated server has no animations; 1.12 relied on every client reporting
+  `attackDone`, and each client cycled its own attack animation, now synced); vanilla 26.3 pearls
+  teleport any owner, so hers are caught in `ProjectileImpactEvent`; a downed or homeward girl
+  says she's busy instead of opening the menu; exactly-lethal damage downs her too (1.12: only
+  overkill); the void and `/kill` still kill a mastered girl (1.12 cancelled her death, leaving her
+  at 0 HP); death drops the real stacks (1.12 dropped one plain item per slot); the new home is the
+  centre of her block (1.12: its corner).
+- Kept from 1.12: the bow is held but never visibly drawn (1.12 set and cleared `BOW` in the same
+  tick, so no client ever saw it); every weapon swings every 3 ticks (attack speed clamped to 0.5).
+- Not ported: `GirlAiBase` (dead code), `InformOfOwnershipPacket` (Galath, Phase 5). The equipment
+  button belongs to 3d.
 
 **3d: inventory + equipment.** Two containers, menu, screen, equipment sync.
 

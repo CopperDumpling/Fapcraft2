@@ -8,10 +8,11 @@ import org.jspecify.annotations.Nullable;
 
 /** Renders any girl with her {@link GirlModel}. */
 public class GirlRenderer<T extends GirlEntity> extends GeoEntityRenderer<T, LivingEntityRenderState> {
-    public GirlRenderer(EntityRendererProvider.Context context, String name) {
+    public GirlRenderer(EntityRendererProvider.Context context, String name, HeldWeaponLayer.WeaponPose weaponPose) {
         super(context, new GirlModel<>(name));
         withRenderLayer(PartnerBodyLayer::new);
         withRenderLayer(renderer -> new PaymentItemLayer<>(context, renderer));
+        withRenderLayer(renderer -> new HeldWeaponLayer<>(context, renderer, weaponPose));
     }
 
     @Override

@@ -11,9 +11,11 @@ package com.trolmastercard.sexmod.entity;
  * @param transitionTicks GeckoLib blend time into this step's animation
  * @param hasPlayer       the scene partner takes part (movement locked, camera positioned)
  * @param autoBlink       the eyes controller keeps blinking during this step
+ * @param busy            she can't take orders (the menu says she is busy) and her own AI pauses.
+ *                        True for scene steps; false for what a companion does along the way
  */
 public enum GirlAction {
-    NULL(0, false, true),
+    NULL(0, false, true, false),
     PAYMENT(5, true, false),
     STARTBLOWJOB(2, true, false),
     SUCKBLOWJOB(2, true, false),
@@ -31,18 +33,30 @@ public enum GirlAction {
     DOGGYSTART(0, true, false),
     DOGGYSLOW(2, true, false),
     DOGGYFAST(2, true, false),
-    DOGGYCUM(2, true, false);
+    DOGGYCUM(2, true, false),
+    // companion (1.12.2 GirlFollowGoal + the pearl home)
+    ATTACK(0, false, true, false),
+    RIDE(0, false, true, false),
+    SIT(0, false, true, false),
+    THROW_PEARL(0, false, false),
+    DOWNED(7, false, true);
 
     private static final GirlAction[] VALUES = values();
 
     public final int transitionTicks;
     public final boolean hasPlayer;
     public final boolean autoBlink;
+    public final boolean busy;
 
     GirlAction(int transitionTicks, boolean hasPlayer, boolean autoBlink) {
+        this(transitionTicks, hasPlayer, autoBlink, true);
+    }
+
+    GirlAction(int transitionTicks, boolean hasPlayer, boolean autoBlink, boolean busy) {
         this.transitionTicks = transitionTicks;
         this.hasPlayer = hasPlayer;
         this.autoBlink = autoBlink;
+        this.busy = busy;
     }
 
     public static GirlAction byId(int id) {
