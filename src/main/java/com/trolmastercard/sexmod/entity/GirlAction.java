@@ -13,6 +13,8 @@ package com.trolmastercard.sexmod.entity;
  * @param autoBlink       the eyes controller keeps blinking during this step
  * @param busy            she can't take orders (the menu says she is busy) and her own AI pauses.
  *                        True for scene steps; false for what a companion does along the way
+ * @param boyCam          in first person the partner's camera follows her model's {@code boyCam}
+ *                        bone (1.12.2 {@code useBoyCam}: the scenes where she carries the partner)
  */
 public enum GirlAction {
     NULL(0, false, true, false),
@@ -34,6 +36,26 @@ public enum GirlAction {
     DOGGYSLOW(2, true, false),
     DOGGYFAST(2, true, false),
     DOGGYCUM(2, true, false),
+    // Ellie: carried ("face fuck")
+    CARRY_INTRO(0, true, false, true, true),
+    CARRY_SLOW(0, true, false, true, true),
+    CARRY_FAST(0, true, false, true, true),
+    CARRY_CUM(0, true, false, true, true),
+    // Ellie: horny potion (dash, hug, choice, bed) and the scenes on the bed
+    DASH(2, false, false),
+    HUG(2, true, false),
+    HUGIDLE(0, true, true),
+    HUGSELECTED(0, true, false),
+    SITDOWN(2, false, false),
+    SITDOWNIDLE(0, false, true),
+    COWGIRLSTART(0, true, false),
+    COWGIRLSLOW(10, true, false),
+    COWGIRLFAST(10, true, false),
+    COWGIRLCUM(2, true, false),
+    MISSIONARY_START(0, true, false),
+    MISSIONARY_SLOW(2, true, false),
+    MISSIONARY_FAST(2, true, false),
+    MISSIONARY_CUM(2, true, false),
     // companion (1.12.2 GirlFollowGoal + the pearl home)
     ATTACK(0, false, true, false),
     RIDE(0, false, true, false),
@@ -47,16 +69,22 @@ public enum GirlAction {
     public final boolean hasPlayer;
     public final boolean autoBlink;
     public final boolean busy;
+    public final boolean boyCam;
 
     GirlAction(int transitionTicks, boolean hasPlayer, boolean autoBlink) {
         this(transitionTicks, hasPlayer, autoBlink, true);
     }
 
     GirlAction(int transitionTicks, boolean hasPlayer, boolean autoBlink, boolean busy) {
+        this(transitionTicks, hasPlayer, autoBlink, busy, false);
+    }
+
+    GirlAction(int transitionTicks, boolean hasPlayer, boolean autoBlink, boolean busy, boolean boyCam) {
         this.transitionTicks = transitionTicks;
         this.hasPlayer = hasPlayer;
         this.autoBlink = autoBlink;
         this.busy = busy;
+        this.boyCam = boyCam;
     }
 
     public static GirlAction byId(int id) {

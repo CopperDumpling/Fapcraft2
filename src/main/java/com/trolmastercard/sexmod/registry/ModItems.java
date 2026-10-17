@@ -15,6 +15,8 @@ public final class ModItems {
 
     public static final DeferredItem<SpawnEggItem> JENNY_SPAWN_EGG = ITEMS.registerItem(
         "jenny_spawn_egg", SpawnEggItem::new, p -> p.spawnEgg(ModEntities.JENNY.get()));
+    public static final DeferredItem<SpawnEggItem> ELLIE_SPAWN_EGG = ITEMS.registerItem(
+        "ellie_spawn_egg", SpawnEggItem::new, p -> p.spawnEgg(ModEntities.ELLIE.get()));
 
     private ModItems() {
     }
@@ -25,6 +27,7 @@ public final class ModItems {
         static void onBuildTabs(BuildCreativeModeTabContentsEvent event) {
             if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) {
                 event.accept(JENNY_SPAWN_EGG);
+                event.accept(ELLIE_SPAWN_EGG);
             }
         }
     }

@@ -26,9 +26,14 @@ final class ServerSceneHandlers {
     static void chooseAction(ChooseActionPayload payload, IPayloadContext context) {
         if (!(context.player() instanceof ServerPlayer player)) return;
         GirlEntity girl = girl(player, payload.girlId(), MENU_RANGE);
-        if (girl == null || girl.isBusy() || !girl.takesOrdersFrom(player)) return;
+        if (girl == null) return;
         SceneOption option = girl.availableOptions().stream().filter(o -> o.id().equals(payload.option())).findFirst().orElse(null);
         if (option == null) return;
+        if (girl.awaitsChoice()) {
+            if (girl.isPartner(player)) girl.chooseMidScene(player, option);
+            return;
+        }
+        if (girl.isBusy() || !girl.takesOrdersFrom(player)) return;
         if (option.needsBed()) {
             BedFinder.Plan plan = girl.planBed();
             if (!plan.ok()) {
@@ -55,8 +60,14 @@ final class ServerSceneHandlers {
         if (girl == null || girl.isBusy() || !girl.takesOrdersFrom(player)) return;
         switch (payload.order()) {
             case FOLLOW -> girl.setMaster(player);
-            case STOP_FOLLOWING -> girl.clearMaster();
-            case GO_HOME -> girl.goHome();
+            case STOP_FOLLOWING -> {
+                girl.clearMaster();
+                girl.onDismissed(player);
+            }
+            case GO_HOME -> {
+                girl.goHome();
+                girl.onDismissed(player);
+            }
             case SET_HOME -> {
                 girl.setHome(Vec3.atBottomCenterOf(girl.blockPosition()));
                 girl.onNewHome(player);

@@ -30,6 +30,7 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
  *   show its label while the mouse is over it.</li>
  * </ul>
  * Picking an option or order sends it to the server, which checks it and takes any payment.
+ * Mid-scene (Ellie's hug, {@link GirlEntity#awaitsChoice()}) only the options show.
  */
 public class GirlActionScreen extends Screen {
     private static final Identifier TEXTURE = Fapcraft.id("textures/gui/girlinventory.png");
@@ -50,6 +51,8 @@ public class GirlActionScreen extends Screen {
     private final List<SceneOption> options;
     private final List<Button> optionButtons = new ArrayList<>();
     private final List<OrderButton> orderButtons = new ArrayList<>();
+    /** Mid-scene choice: no orders, no equipment (1.12.2 opened the menu "not ready"). */
+    private final boolean optionsOnly;
     private long openedAt;
     private long lastFrame;
 
@@ -91,6 +94,7 @@ public class GirlActionScreen extends Screen {
         super(girl.getName());
         this.girl = girl;
         this.options = girl.availableOptions();
+        this.optionsOnly = girl.awaitsChoice();
     }
 
     @Override
@@ -104,6 +108,7 @@ public class GirlActionScreen extends Screen {
                 .bounds(this.width, 0, OPTION_WIDTH, 20)
                 .build()));
         }
+        if (this.optionsOnly) return;
         // 1.12.2 swapped "follow me" for "stop following" whenever she had a master
         OrderStyle follow = this.girl.hasMaster() ? OrderStyle.STOP_FOLLOWING : OrderStyle.FOLLOW;
         for (OrderStyle style : List.of(follow, OrderStyle.GO_HOME, OrderStyle.SET_HOME, OrderStyle.EQUIPMENT)) {
@@ -135,6 +140,10 @@ public class GirlActionScreen extends Screen {
         int slide = (int) Mth.lerp(slideIn, -30.0F, 120.0F);
 
         layoutOptions(graphics, slide, openUp);
+        if (this.optionsOnly) {
+            super.extractRenderState(graphics, mouseX, mouseY, partialTick);
+            return;
+        }
         // her equipment, sliding in from the left
         if (openUp > 0.0F) {
             graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, slide - 113, 60, 0, 0, 32, 130, 256, 256);

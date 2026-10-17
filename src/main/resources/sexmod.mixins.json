@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "com.trolmastercard.sexmod.client.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [],
+  "client": [
+    "CameraMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}

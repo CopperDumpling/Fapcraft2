@@ -1,5 +1,8 @@
 package com.trolmastercard.sexmod.entity;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.Level;
@@ -28,6 +31,42 @@ public final class BedFinder {
     }
 
     private BedFinder() {
+    }
+
+    /** Where she sits on a bed's end, per side (1.12.2 {@code EllieEntity.getRandomSitPose}): seat, the open neighbour, the bed's other half. */
+    private static final Vec3[] SEAT = {new Vec3(0.5, 0, -0.18), new Vec3(0.5, 0, 1.18), new Vec3(-0.18, 0, 0.5), new Vec3(1.18, 0, 0.5)};
+    private static final BlockPos[] SEAT_OTHER_HALF = {new BlockPos(0, 0, 1), new BlockPos(0, 0, -1), new BlockPos(1, 0, 0), new BlockPos(-1, 0, 0)};
+
+    /**
+     * A seat on the end of a bed: on the nearest bed (within 22 blocks, ±3) whose end has open
+     * space in front of it, the side nearest her. Fails with {@link Failure#NO_BED} only.
+     */
+    public static Plan planSeat(Level level, BlockPos from) {
+        List<BlockPos> beds = new ArrayList<>();
+        for (int dx = -RADIUS; dx <= RADIUS; dx++) {
+            for (int dz = -RADIUS; dz <= RADIUS; dz++) {
+                for (int dy = -HEIGHT; dy <= HEIGHT; dy++) {
+                    BlockPos pos = from.offset(dx, dy, dz);
+                    if (level.getBlockState(pos).is(BlockTags.BEDS)) beds.add(pos);
+                }
+            }
+        }
+        beds.sort(Comparator.comparingDouble(pos -> pos.distSqr(from)));
+        for (BlockPos bed : beds) {
+            int pick = -1;
+            double pickDist = Double.MAX_VALUE;
+            for (int i = 0; i < SEAT.length; i++) {
+                if (!level.getBlockState(bed.offset(NEIGHBOUR[i])).isAir()) continue;
+                if (!level.getBlockState(bed.offset(SEAT_OTHER_HALF[i])).is(BlockTags.BEDS)) continue;
+                double dist = Vec3.atLowerCornerOf(bed).add(SEAT[i]).distanceToSqr(Vec3.atLowerCornerOf(from));
+                if (dist < pickDist) {
+                    pickDist = dist;
+                    pick = i;
+                }
+            }
+            if (pick >= 0) return new Plan(Vec3.atLowerCornerOf(bed).add(SEAT[pick]), YAWS[pick], null);
+        }
+        return new Plan(null, 0, Failure.NO_BED);
     }
 
     public static Plan plan(Level level, BlockPos from) {

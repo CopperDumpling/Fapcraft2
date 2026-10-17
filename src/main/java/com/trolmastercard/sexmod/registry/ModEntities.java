@@ -1,6 +1,7 @@
 package com.trolmastercard.sexmod.registry;
 
 import com.trolmastercard.sexmod.Fapcraft;
+import com.trolmastercard.sexmod.entity.ellie.EllieEntity;
 import com.trolmastercard.sexmod.entity.jenny.JennyEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -17,6 +18,9 @@ public final class ModEntities {
     // 1.12.2: 0.49 x 1.95, eye height 1.64, tracked within 50 blocks
     public static final DeferredHolder<EntityType<?>, EntityType<JennyEntity>> JENNY = ENTITIES.registerEntityType(
         "jenny", JennyEntity::new, MobCategory.CREATURE, b -> b.sized(0.49F, 1.95F).eyeHeight(1.64F).clientTrackingRange(4));
+    // 1.12.2: the default 0.6 x 1.8, eye height 1.9 (1.53 crouched, see EllieEntity)
+    public static final DeferredHolder<EntityType<?>, EntityType<EllieEntity>> ELLIE = ENTITIES.registerEntityType(
+        "ellie", EllieEntity::new, MobCategory.CREATURE, b -> b.sized(0.6F, 1.8F).eyeHeight(1.9F).clientTrackingRange(4));
 
     private ModEntities() {
     }
@@ -26,6 +30,7 @@ public final class ModEntities {
         @SubscribeEvent
         static void onCreateAttributes(EntityAttributeCreationEvent event) {
             event.put(JENNY.get(), JennyEntity.createAttributes().build());
+            event.put(ELLIE.get(), EllieEntity.createAttributes().build());
         }
     }
 }

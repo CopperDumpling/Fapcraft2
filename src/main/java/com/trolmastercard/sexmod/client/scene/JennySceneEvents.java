@@ -1,17 +1,17 @@
 package com.trolmastercard.sexmod.client.scene;
 
+import static com.trolmastercard.sexmod.client.scene.SceneEvents.play;
+import static com.trolmastercard.sexmod.client.scene.SceneEvents.say;
+import static com.trolmastercard.sexmod.client.scene.SceneEvents.sayAsPartner;
+
 import com.trolmastercard.sexmod.entity.GirlAction;
 import com.trolmastercard.sexmod.entity.jenny.JennyEntity;
-import com.trolmastercard.sexmod.network.SceneChatPayload;
 import com.trolmastercard.sexmod.network.ScenePosePayload;
 import com.trolmastercard.sexmod.sound.ModSounds;
-import com.trolmastercard.sexmod.sound.SoundGroup;
 import net.minecraft.client.Minecraft;
 import com.trolmastercard.sexmod.entity.SceneOption;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.sounds.SoundEvent;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 /**
@@ -247,30 +247,9 @@ public final class JennySceneEvents {
                 if (partner) SceneControls.endFastLoop(jenny, GirlAction.PAIZURI_FAST, GirlAction.PAIZURI_SLOW);
             }
             default -> {
-                // events of scenes not ported yet
+                SceneEvents.handleShared(jenny, event);
+                // others: events of scenes not ported yet
             }
         }
-    }
-
-    private static void play(JennyEntity jenny, SoundGroup group) {
-        play(jenny, group.random(jenny.getRandom()), 1.0F);
-    }
-
-    private static void play(JennyEntity jenny, Holder<SoundEvent> sound) {
-        play(jenny, sound, 1.0F);
-    }
-
-    private static void play(JennyEntity jenny, Holder<SoundEvent> sound, float volume) {
-        jenny.level().playLocalSound(jenny, sound.value(), jenny.getSoundSource(), volume, 1.0F);
-    }
-
-    /** "{@code <Jenny> ...}" to everyone nearby, sent once by the partner's client. */
-    private static void say(JennyEntity jenny, boolean partner, String line) {
-        if (partner) ClientPacketDistributor.sendToServer(new SceneChatPayload(jenny.getId(), jenny.dialoguePrefix() + line, false));
-    }
-
-    /** "{@code <partner> ...}": the lines 1.12.2 had the player say. */
-    private static void sayAsPartner(JennyEntity jenny, boolean partner, String line) {
-        if (partner) ClientPacketDistributor.sendToServer(new SceneChatPayload(jenny.getId(), jenny.dialoguePrefix() + line, true));
     }
 }

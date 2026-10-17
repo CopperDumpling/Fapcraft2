@@ -1,6 +1,7 @@
 package com.trolmastercard.sexmod.client.render;
 
 import com.trolmastercard.sexmod.Fapcraft;
+import com.trolmastercard.sexmod.entity.ellie.EllieEntity;
 import com.trolmastercard.sexmod.registry.ModEntities;
 import java.util.List;
 import net.neoforged.api.distmarker.Dist;
@@ -21,11 +22,23 @@ public final class ModRenderers {
             List.of("fleshL", "fleshR", "vagina", "curvesL", "curvesR", "kneeL", "kneeR")),
         new ArmorLayer.Part(List.of("armorShoesL", "armorShoesR"), List.of()));
 
+    /** 1.12.2 {@code EllieEntity} constructor values. */
+    private static final HeldWeaponLayer.WeaponPose ELLIE_WEAPON = new HeldWeaponLayer.WeaponPose(-85.0F, -175.0F, new Vector3f(-0.1F, 0.05F, 0.0F), -85.0F);
+    /** 1.12.2 {@code EllieNpcModel}: as Jenny, plus her headband under a helmet and her hotpants and slip under leggings. */
+    private static final ArmorLayer.Bones ELLIE_ARMOR = new ArmorLayer.Bones(
+        new ArmorLayer.Part(List.of("armorHelmet"), List.of("headband")),
+        new ArmorLayer.Part(List.of("armorShoulderR", "armorShoulderL", "armorChest", "armorBoobs"), List.of("boobsFlesh", "upperBodyL", "upperBodyR")),
+        new ArmorLayer.Part(List.of("armorBootyR", "armorBootyL", "armorPantsLowL", "armorPantsLowR", "armorPantsUpR", "armorPantsUpL", "armorHip"),
+            List.of("fleshL", "fleshR", "vagina", "hotpants", "slip", "curvesL", "curvesR", "kneeL", "kneeR")),
+        new ArmorLayer.Part(List.of("armorShoesL", "armorShoesR"), List.of()));
+
     private ModRenderers() {
     }
 
     @SubscribeEvent
     static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(ModEntities.JENNY.get(), ctx -> new GirlRenderer<>(ctx, "jenny", JENNY_WEAPON, JENNY_ARMOR));
+        event.registerEntityRenderer(ModEntities.JENNY.get(), ctx -> new GirlRenderer<>(ctx, new GirlModel<>("jenny"), JENNY_WEAPON, JENNY_ARMOR));
+        event.registerEntityRenderer(ModEntities.ELLIE.get(), ctx -> new GirlRenderer<EllieEntity>(ctx, new GirlModel<>("ellie", "dressed", "nude"), ELLIE_WEAPON, ELLIE_ARMOR)
+            .withRenderLayer(EllieHeadLayer::new));
     }
 }

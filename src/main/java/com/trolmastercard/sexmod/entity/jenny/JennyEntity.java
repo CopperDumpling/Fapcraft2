@@ -38,10 +38,6 @@ public class JennyEntity extends GirlEntity {
         new SceneOption("strip", "action.names.strip", Items.GOLD_INGOT, 1, GirlAction.STRIP, Outfit.DRESSED, false, false, false, "showBobsandveganapls"),
         new SceneOption("dressup", "action.names.dressup", null, 0, GirlAction.STRIP, Outfit.NUDE, false, true, false, ""));
 
-    /** The strip animation toggles her outfit 3 s in and ends after 5.04 s (events {@code becomeNude}, {@code stripDone}). */
-    private static final int STRIP_TOGGLE_TICKS = 60;
-    private static final int STRIP_END_TICKS = 101;
-
     /** Partner kneels in front of her during the intro (1.12.2 event {@code bjiMSG10}). */
     private static final PlayerPose BLOWJOB_POSE = new PlayerPose(-0.65, -0.8, -0.25, 60.0F, -3.0F);
     /** Partner looks down for the climax (1.12.2 {@code getCumAction}). */
@@ -108,6 +104,7 @@ public class JennyEntity extends GirlEntity {
             case DOGGYFAST -> loop(this.entityData.get(DATA_HARD) ? "doggyfast_hard" : "doggyfast_soft");
             case DOGGYCUM -> once("doggycum");
             case ATTACK, RIDE, SIT, THROW_PEARL, DOWNED -> companionAnimation(action);
+            default -> null;
         };
     }
 
@@ -206,20 +203,20 @@ public class JennyEntity extends GirlEntity {
     }
 
     @Override
+    protected int stripEndTicks() {
+        return 101; // stripDone at 5.04 s
+    }
+
+    @Override
     protected void tickAction(GirlAction action, int ticks) {
         switch (action) {
-            case STRIP -> {
-                if (ticks == STRIP_TOGGLE_TICKS) setDressed(!isDressed());
-                if (ticks >= STRIP_END_TICKS) finishStrip();
-            }
             // no partner is in the room yet, so the server speaks and times these (events doggyGoOnBedMSG2/3/Done)
             case STARTDOGGY -> {
                 if (ticks == 50) sayNearby("doggytext1");
                 if (ticks == 83) sayNearby("doggytext2");
                 if (ticks >= 130) setAction(GirlAction.WAITDOGGY);
             }
-            default -> {
-            }
+            default -> super.tickAction(action, ticks);
         }
     }
 

@@ -7,7 +7,7 @@ import com.trolmastercard.sexmod.entity.GirlEntity;
 import net.minecraft.resources.Identifier;
 
 /**
- * A girl's GeckoLib assets, by name: {@code geckolib/models/<name>/<name>dressed|nude.geo.json},
+ * A girl's GeckoLib assets, by name: {@code geckolib/models/<name>/<dressed|nude file>.geo.json},
  * {@code geckolib/animations/<name>/<name>.animation.json} and
  * {@code textures/entity/<name>/<name>.png} (the 1.12.2 layout).
  */
@@ -17,9 +17,15 @@ public class GirlModel<T extends GirlEntity> extends GeoModel<T> {
     private final Identifier animations;
     private final Identifier texture;
 
+    /** Jenny's layout: {@code <name>/<name>dressed}, {@code <name>/<name>nude}. */
     public GirlModel(String name) {
-        this.dressed = Fapcraft.id(name + "/" + name + "dressed");
-        this.nude = Fapcraft.id(name + "/" + name + "nude");
+        this(name, name + "dressed", name + "nude");
+    }
+
+    /** Models {@code <name>/<dressed>} and {@code <name>/<nude>}; animations and texture named after the girl. */
+    public GirlModel(String name, String dressedFile, String nudeFile) {
+        this.dressed = Fapcraft.id(name + "/" + dressedFile);
+        this.nude = Fapcraft.id(name + "/" + nudeFile);
         this.animations = Fapcraft.id(name + "/" + name);
         this.texture = Fapcraft.id("textures/entity/" + name + "/" + name + ".png");
     }

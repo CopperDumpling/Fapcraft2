@@ -157,7 +157,7 @@ it); the importer pins 1583 such channels at t=0 (`hold_first_keyframes`).
 - Kept from 1.12: bow never visibly drawn; weapons swing every 3 ticks.
 - Not ported: `GirlAiBase` (dead), `InformOfOwnershipPacket` (Phase 5). Equipment button is 3d.
 
-**3d: equipment (built, awaiting in-game check)**
+**3d: equipment (done)**
 - [x] Equipment menu from her "equipment" order: weapon (sword or tool), bow and four armour slots
   over the player's inventory, `girlinventory.png` layout, shift-click.
 - [x] Worn armour on her dressed model: armour bones shown per part, hiding what they cover;
@@ -165,7 +165,7 @@ it); the importer pins 1583 such channels at t=0 (`hold_first_keyframes`).
 - Changed: the server menu edits her inventory directly (1.12 uploaded both inventories from the
   client on close). Luna's rod menu and the 27-slot girl chest belong to Luna/Bee/Kobold (Phases 4–5).
 
-**3e: menu and HUD artwork (built, awaiting in-game check)**
+**3e: menu and HUD artwork (done)**
 - [x] Action menu in the 1.12 layout: options slide in bottom right with their prices, equipment
   preview and icon order buttons that open on hover on the left.
 - [x] Horny meter with `hornymeter.png` / `buttons.png`: slide-in, SHIFT and JUMP prompts, fill
@@ -174,6 +174,21 @@ it); the importer pins 1583 such channels at t=0 (`hold_first_keyframes`).
 ### Phase 4: Remaining NPC girls
 Ellie, Bia, Slime (+ wild), Manglelie, Luna (fishing), Bee (chest, dialogue, world data), Allie
 (lamp, wishes, world data), each at parity before the next. **Exit:** all simple girls at parity.
+
+**4a: Ellie**
+- [x] Basics (done; dress up is only reachable after the potion route undresses her): spawn egg, renderer (her armour bones incl. headband,
+  hotpants, slip), weapon grip, crouch walk/idle and lower eyes under a block two above her feet,
+  companion lines, dress up.
+- [x] Carried scene, "Face fuck" (done): walk-in, intro (partner lifted at
+  110 ticks, loop at 191), four random slow loops ⇄ fast on sneak, climax on a full meter + jump.
+  First-person camera on her `boyCam` bone (client `Camera` mixin).
+- [x] Horny-potion route (built, awaiting in-game check): dash at the nearest player within 10,
+  hug from behind, cowgirl/missionary menu, walk to the end of a bed, sit and wait with head
+  tracking; whoever steps within 1.5 gets the scene (black transition), and she ends nude.
+- Changed: she faces the player during the dash (1.12 left out the +90 its other turn code has);
+  she is put on the seat if she can't reach it in 10 s (as Jenny at her bed).
+- Changed: her chat lines are lang keys (1.12 hard-coded some English); the attack swing sound
+  (`attackSound`, missing from Jenny's port too) now plays for every girl.
 
 ### Phase 5: Complex girls
 - **Kobold:** tribes as `SavedData`, eggs, tribe UI, mining / tree felling (likely `Brain`), dragon staff + dragon.

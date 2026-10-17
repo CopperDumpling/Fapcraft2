@@ -176,7 +176,21 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
      * (e.g. strip, which has no partner whose client could report its events).
      */
     protected void tickAction(GirlAction action, int ticks) {
+        if (action == GirlAction.STRIP) {
+            if (ticks == stripToggleTicks()) setDressed(!isDressed());
+            if (ticks >= stripEndTicks()) finishStrip();
+        }
     }
+
+    /**
+     * Strip / dress up is timed on the server (it may have no partner client to report keyframes):
+     * the tick its {@code becomeNude} event swaps the outfit, and the tick its {@code stripDone} ends it.
+     */
+    protected int stripToggleTicks() {
+        return 60;
+    }
+
+    protected abstract int stripEndTicks();
 
     /** A named partner position the client may ask for during {@code action}, or null. */
     protected @Nullable PlayerPose scenePose(String name, GirlAction action) {
@@ -235,6 +249,18 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
 
     public void setDressed(boolean dressed) {
         this.entityData.set(DATA_DRESSED, dressed);
+    }
+
+    /**
+     * True while she waits for her partner to pick a scene mid-scene (Ellie's hug): the partner's
+     * menu then lists only {@link #availableOptions()}, and picking one goes to {@link #chooseMidScene}.
+     */
+    public boolean awaitsChoice() {
+        return false;
+    }
+
+    /** Server: her partner picked {@code option} while she {@link #awaitsChoice()}. */
+    public void chooseMidScene(ServerPlayer player, SceneOption option) {
     }
 
     /** The menu entries that apply to her current outfit. */
@@ -381,7 +407,7 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
     }
 
     /** Server: before a scene: off any mount, weapons away, out of a swing. */
-    private void leaveCompanionPose() {
+    protected final void leaveCompanionPose() {
         if (this.isPassenger()) this.stopRiding();
         this.noPhysics = false;
         this.setNoGravity(false);
@@ -423,6 +449,10 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
     /** Server: "set new home": where she stands now. */
     public void setHome(Vec3 pos) {
         this.home = pos;
+    }
+
+    /** Server: her reply when told to stop following or to go home (1.12.2 {@code goHome} overrides). */
+    public void onDismissed(ServerPlayer player) {
     }
 
     /** Server: her reply to "set new home", to the player who set it (1.12.2 {@code onArriveHome}). */
@@ -838,7 +868,8 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
         anchor(this.position(), yaw);
         this.sceneYaw = Mth.wrapDegrees(yaw + 180.0F);
         this.sceneOrigin = null;
-        if (isHorny()) {
+        SceneOption option = currentOption();
+        if (isHorny() || (option != null && option.price().isEmpty())) {
             advance(this.pendingStep); // no payment to wait for
         } else {
             setAction(GirlAction.PAYMENT);
@@ -940,7 +971,12 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
     private PlayState movementState(AnimationTest<GirlEntity> test) {
         if (getAction() != GirlAction.NULL && getAction() != GirlAction.WALK_TO_BED) return test.setAndContinue(loop("null"));
         if (this.isPassenger()) return test.setAndContinue(loop("sit"));
-        return test.setAndContinue(loop(test.isMoving() ? getGait().animation : "idle"));
+        return test.setAndContinue(loop(movementAnimation(test.isMoving())));
+    }
+
+    /** Walk / idle animation name while she does nothing else. */
+    protected String movementAnimation(boolean moving) {
+        return moving ? getGait().animation : "idle";
     }
 
     private PlayState eyesState(AnimationTest<GirlEntity> test) {
