@@ -1,0 +1,622 @@
+package com.trolmastercard.sexmod.entity;
+
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.util.GeckoLibUtil;
+import com.trolmastercard.sexmod.Fapcraft;
+import com.trolmastercard.sexmod.client.ClientHooks;
+import com.trolmastercard.sexmod.entity.ai.GatedGoal;
+import com.trolmastercard.sexmod.registry.ModEffects;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
+import net.minecraft.world.entity.ai.goal.OpenDoorGoal;
+import net.minecraft.world.entity.ai.goal.TemptGoal;
+import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
+
+/**
+ * Base for every NPC girl: synced scene state, the shared AI goals, save data and the three
+ * GeckoLib controllers (movement, eyes, action) that 1.12.2's {@code BaseGirlEntity} used.
+ * <p>
+ * Scene state is changed only on the server ({@link #setAction}); clients render it.
+ */
+public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
+    private static final EntityDataAccessor<Integer> DATA_ACTION = SynchedEntityData.defineId(GirlEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> DATA_DRESSED = SynchedEntityData.defineId(GirlEntity.class, EntityDataSerializers.BOOLEAN);
+    /** Entity id of the scene partner, or -1. */
+    private static final EntityDataAccessor<Integer> DATA_PARTNER = SynchedEntityData.defineId(GirlEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> DATA_ANCHORED = SynchedEntityData.defineId(GirlEntity.class, EntityDataSerializers.BOOLEAN);
+    /** The {@link SceneOption#id()} being played, or "". */
+    private static final EntityDataAccessor<String> DATA_OPTION = SynchedEntityData.defineId(GirlEntity.class, EntityDataSerializers.STRING);
+    /** True for scenes that don't lock the partner (dressing up). */
+    private static final EntityDataAccessor<Boolean> DATA_SOLO = SynchedEntityData.defineId(GirlEntity.class, EntityDataSerializers.BOOLEAN);
+
+    /** 1.12.2 {@code TEMPTATION_ITEMS}. */
+    private static final Set<net.minecraft.world.item.Item> TEMPT_ITEMS = Set.of(Items.EMERALD, Items.DIAMOND, Items.GOLD_INGOT, Items.ENDER_PEARL);
+
+    private final AnimatableInstanceCache animationCache = GeckoLibUtil.createInstanceCache(this);
+    private final Map<String, RawAnimation> namedAnimations = new ConcurrentHashMap<>();
+
+    /** Server: tick the current action started on (per girl; see {@link GirlAction}). */
+    private int actionStartTick;
+    /** Server: where the girl is held while anchored. */
+    private @Nullable Vec3 anchorPos;
+    private float anchorYaw;
+
+    /** Server: the step that follows the payment animation (1.12.2 {@code animationFollowUp}). */
+    private GirlAction pendingStep = GirlAction.NULL;
+    /** Server: the step after a strip that was only a means to the chosen scene, or NULL to end. */
+    private GirlAction followUp = GirlAction.NULL;
+    /** Server: ticks into the walk-into-place before a scene (1.12.2 {@code setDismounted}), or -1. */
+    private int approachTicks = -1;
+    /** Server: partner position the scene's player poses are relative to (1.12.2 {@code cameraOriginPos}). */
+    private @Nullable Vec3 sceneOrigin;
+    /** Server: where she is walking to / stands at the bed, and which player ordered it. */
+    private @Nullable Vec3 bedPos;
+    private float bedYaw;
+    private @Nullable UUID bedOrderer;
+    private int bedTicks;
+    /** Server: yaw of the scene frame: the direction the partner faces her (1.12.2 {@code cameraYaw}). */
+    private float sceneYaw;
+
+    protected GirlEntity(EntityType<? extends GirlEntity> type, Level level) {
+        super(type, level);
+        this.getNavigation().setCanOpenDoors(true);
+    }
+
+    public static AttributeSupplier.Builder createGirlAttributes() {
+        return PathfinderMob.createMobAttributes()
+            .add(Attributes.MAX_HEALTH, 20.0)
+            .add(Attributes.MOVEMENT_SPEED, 0.5)
+            .add(Attributes.FOLLOW_RANGE, 30.0)
+            .add(Attributes.TEMPT_RANGE, 10.0); // 26.3 TemptGoal needs it; 1.12.2 tempted within 10 blocks
+    }
+
+    /** Prefix of this girl's animation names, e.g. {@code "animation.jenny."}. */
+    protected abstract String animationPrefix();
+
+    /** Animation for a scene step (looping or played once and held), or null to show none. */
+    protected abstract @Nullable RawAnimation actionAnimation(GirlAction action);
+
+    /** Eyes animation while idle (blinking); 1.12.2 used per-girl names. */
+    protected abstract String blinkAnimationName();
+
+    /** The interaction menu. */
+    public abstract List<SceneOption> sceneOptions();
+
+    /** Step the partner's sneak key asks for during {@code action} (1.12.2 {@code getNextAction}), or null. */
+    public abstract @Nullable GirlAction sneakStep(GirlAction action);
+
+    /** Step a full meter + jump asks for during {@code action} (1.12.2 {@code getCumAction}), or null. */
+    public abstract @Nullable GirlAction climaxStep(GirlAction action);
+
+    /**
+     * Whether the partner's client may move the scene from {@code from} to {@code to}
+     * (animation keyframe events and the controls above). {@link GirlAction#NULL} ends the scene.
+     * Payment → the chosen first step is always allowed.
+     */
+    protected abstract boolean canStep(GirlAction from, GirlAction to);
+
+    /** Server: side effects of an accepted step, before it starts (1.12.2 {@code setCurrentAction} overrides). */
+    protected void onStep(ServerPlayer partner, GirlAction from, GirlAction to) {
+    }
+
+    /**
+     * Server, every tick of a scene step: steps that run on a timer instead of a keyframe
+     * (e.g. strip, which has no partner whose client could report its events).
+     */
+    protected void tickAction(GirlAction action, int ticks) {
+    }
+
+    /** A named partner position the client may ask for during {@code action}, or null. */
+    protected @Nullable PlayerPose scenePose(String name, GirlAction action) {
+        return null;
+    }
+
+    /** Prefix of the dialogue keys her animation events may broadcast, e.g. {@code "jenny.dialogue."}. */
+    public abstract String dialoguePrefix();
+
+    /* ------------------------------------------------------------------ */
+    /* Synced state                                                       */
+    /* ------------------------------------------------------------------ */
+
+    @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_ACTION, GirlAction.NULL.ordinal());
+        builder.define(DATA_DRESSED, true);
+        builder.define(DATA_PARTNER, -1);
+        builder.define(DATA_ANCHORED, false);
+        builder.define(DATA_OPTION, "");
+        builder.define(DATA_SOLO, false);
+    }
+
+    public GirlAction getAction() {
+        return GirlAction.byId(this.entityData.get(DATA_ACTION));
+    }
+
+    /** Server only. */
+    public void setAction(GirlAction action) {
+        if (this.level().isClientSide()) {
+            Fapcraft.LOGGER.warn("setAction({}) called on the client for {}", action, this);
+            return;
+        }
+        if (action != getAction()) {
+            this.entityData.set(DATA_ACTION, action.ordinal());
+            this.actionStartTick = this.tickCount;
+        }
+    }
+
+    /** Ticks since the current action started (server). */
+    public int actionTicks() {
+        return this.tickCount - this.actionStartTick;
+    }
+
+    public boolean isDressed() {
+        return this.entityData.get(DATA_DRESSED);
+    }
+
+    public void setDressed(boolean dressed) {
+        this.entityData.set(DATA_DRESSED, dressed);
+    }
+
+    /** The menu entries that apply to her current outfit. */
+    public List<SceneOption> availableOptions() {
+        return sceneOptions().stream().filter(o -> o.shownWhen().matches(isDressed())).toList();
+    }
+
+    public @Nullable SceneOption currentOption() {
+        String id = this.entityData.get(DATA_OPTION);
+        return sceneOptions().stream().filter(o -> o.id().equals(id)).findFirst().orElse(null);
+    }
+
+    /** True if the scene doesn't lock the partner. */
+    public boolean isSolo() {
+        return this.entityData.get(DATA_SOLO);
+    }
+
+    /** Under the horny potion she waives payment (1.12.2 {@code yFlag}). */
+    public boolean isHorny() {
+        return this.hasEffect(ModEffects.HORNY);
+    }
+
+    public @Nullable Player getPartner() {
+        int id = this.entityData.get(DATA_PARTNER);
+        return id >= 0 && this.level().getEntity(id) instanceof Player player ? player : null;
+    }
+
+    public boolean isPartner(Player player) {
+        return this.entityData.get(DATA_PARTNER) == player.getId();
+    }
+
+    protected void setPartner(@Nullable Player player) {
+        this.entityData.set(DATA_PARTNER, player == null ? -1 : player.getId());
+    }
+
+    /** True while a scene (or its approach) involves a player; AI wandering is paused. */
+    public boolean isBusy() {
+        return this.entityData.get(DATA_PARTNER) >= 0 || getAction() != GirlAction.NULL;
+    }
+
+    public boolean isAnchored() {
+        return this.entityData.get(DATA_ANCHORED);
+    }
+
+    /** Server: holds the girl still at {@code pos} facing {@code yaw}, with no gravity. */
+    protected void anchor(Vec3 pos, float yaw) {
+        // player yaw is unbounded (thousands of degrees after a lot of turning); sending that to
+        // clients makes the model sweep through every full turn, so wrap it and snap the old angles
+        yaw = Mth.wrapDegrees(yaw);
+        this.anchorPos = pos;
+        this.anchorYaw = yaw;
+        this.yRotO = yaw;
+        this.yBodyRotO = yaw;
+        this.yHeadRotO = yaw;
+        this.entityData.set(DATA_ANCHORED, true);
+        this.setNoGravity(true);
+        this.getNavigation().stop();
+        this.setDeltaMovement(Vec3.ZERO);
+    }
+
+    protected void releaseAnchor() {
+        this.anchorPos = null;
+        this.entityData.set(DATA_ANCHORED, false);
+        this.setNoGravity(false);
+        this.noPhysics = false;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* AI + ticking                                                       */
+    /* ------------------------------------------------------------------ */
+
+    @Override
+    protected void registerGoals() {
+        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(2, idleOnly(new TemptGoal(this, 0.4, stack -> isTemptItem(stack), false)));
+        this.goalSelector.addGoal(3, new OpenDoorGoal(this, true));
+        this.goalSelector.addGoal(5, idleOnly(new LookAtPlayerGoal(this, Player.class, 3.0F, 1.0F)));
+        this.goalSelector.addGoal(5, idleOnly(new WaterAvoidingRandomStrollGoal(this, 0.35)));
+    }
+
+    protected final GatedGoal idleOnly(net.minecraft.world.entity.ai.goal.Goal goal) {
+        return new GatedGoal(goal, () -> !isBusy());
+    }
+
+    private static boolean isTemptItem(ItemStack stack) {
+        return TEMPT_ITEMS.contains(stack.getItem());
+    }
+
+    @Override
+    public InteractionResult mobInteract(Player player, InteractionHand hand) {
+        if (hand != InteractionHand.MAIN_HAND) return InteractionResult.PASS;
+        if (this.level().isClientSide()) {
+            if (isBusy()) {
+                ClientHooks.showBusy(this);
+            } else {
+                ClientHooks.openActionMenu(this);
+            }
+        }
+        return InteractionResult.SUCCESS;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Scenes (server)                                                    */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Starts a scene chosen from the menu (payment already taken). She stops, the partner is
+     * nudged forward and she walks into place in front of them over 40 ticks; then she is
+     * anchored and the payment animation plays (1.12.2 {@code KoboldStatePacket} +
+     * {@code setDismounted}).
+     */
+    public boolean startScene(ServerPlayer player, SceneOption option) {
+        if (isBusy()) return false;
+        setPartner(player);
+        this.entityData.set(DATA_OPTION, option.id());
+        if (option.needsNude() && isDressed()) {
+            this.pendingStep = GirlAction.STRIP;
+            this.followUp = option.firstStep();
+        } else {
+            this.pendingStep = option.firstStep();
+            this.followUp = GirlAction.NULL;
+        }
+        this.getNavigation().stop();
+        this.setDeltaMovement(Vec3.ZERO);
+        Vec3 snap = inFrontOf(player, 0.35);
+        player.connection.teleport(snap.x, snap.y, snap.z, player.getYRot(), player.getXRot());
+        this.approachTicks = 0;
+        this.sceneYaw = Mth.wrapDegrees(player.getYHeadRot() + 180.0F); // she faces the partner while walking in
+        return true;
+    }
+
+    /** A scene that needs no partner lock and no payment animation (dress up). */
+    public boolean startSolo(ServerPlayer player, SceneOption option) {
+        if (isBusy()) return false;
+        setPartner(player);
+        this.entityData.set(DATA_OPTION, option.id());
+        this.entityData.set(DATA_SOLO, true);
+        this.followUp = GirlAction.NULL;
+        this.getNavigation().stop();
+        this.setDeltaMovement(Vec3.ZERO);
+        this.lookAt(player, 30.0F, 30.0F);
+        setAction(option.firstStep());
+        return true;
+    }
+
+    /**
+     * Applies a step requested by the partner's client, if it is legal. After the payment
+     * animation the client's {@code to} is ignored: the step is the one she was asked for.
+     */
+    public void requestStep(ServerPlayer player, GirlAction from, GirlAction to) {
+        if (!isPartner(player) || getAction() != from || from == GirlAction.NULL) return;
+        if (from == GirlAction.PAYMENT) {
+            advance(this.pendingStep);
+            return;
+        }
+        if (!canStep(from, to)) {
+            Fapcraft.LOGGER.debug("rejected scene step {} -> {} for {}", from, to, this);
+            return;
+        }
+        advance(to);
+    }
+
+    /** Server: moves the scene to {@code to} (NULL ends it). */
+    protected final void advance(GirlAction to) {
+        if (to == GirlAction.NULL) {
+            endScene();
+            return;
+        }
+        if (to == GirlAction.STARTDOGGY && getAction() != GirlAction.WALK_TO_BED) {
+            beginBedWalk();
+            return;
+        }
+        if (getPartner() instanceof ServerPlayer partner) onStep(partner, getAction(), to);
+        setAction(to);
+    }
+
+    /** What she would do for a bed-bound option right now; the menu refuses (before taking payment) if it fails. */
+    public BedFinder.Plan planBed() {
+        return BedFinder.plan(this.level(), this.blockPosition());
+    }
+
+    /** Server: she turns the request down because there is no usable bed (no payment is taken). */
+    public void refuseBed(ServerPlayer player, BedFinder.Failure failure) {
+        refuseSound();
+        String key = dialoguePrefix() + (failure == BedFinder.Failure.NO_BED ? "nobedinsight" : "bedobscured");
+        player.sendSystemMessage(Component.literal("<").append(getName()).append("> ").append(Component.translatable(key)));
+    }
+
+    /** Server: her "hmph" when she refuses. */
+    protected void refuseSound() {
+    }
+
+    /** Server: speaks a line of hers to everyone nearby ("{@code <Name> text}", translated per player). */
+    protected void sayNearby(String keySuffix) {
+        Component line = Component.literal("<").append(getName()).append("> ").append(Component.translatable(dialoguePrefix() + keySuffix));
+        for (ServerPlayer nearby : ((ServerLevel) this.level()).players()) {
+            if (nearby.distanceToSqr(this) <= 40 * 40) nearby.sendSystemMessage(line);
+        }
+    }
+
+    /**
+     * Server: after payment (and strip), she lets go of the partner and walks to the bed; the
+     * partner joins her there on their own (1.12.2 {@code goToSexBed}, {@code zFlag}).
+     */
+    private void beginBedWalk() {
+        BedFinder.Plan plan = planBed();
+        Player orderer = getPartner();
+        if (!plan.ok() || orderer == null) {
+            endScene();
+            return;
+        }
+        this.bedOrderer = orderer.getUUID();
+        this.bedPos = plan.position();
+        this.bedYaw = plan.yaw();
+        this.bedTicks = 0;
+        releaseAnchor();
+        setPartner(null);
+        this.sceneOrigin = null;
+        setAction(GirlAction.WALK_TO_BED);
+        this.getNavigation().moveTo(this.bedPos.x, this.bedPos.y, this.bedPos.z, 0.35);
+    }
+
+    private void tickBed() {
+        if (this.bedPos == null) return;
+        GirlAction action = getAction();
+        if (action == GirlAction.WALK_TO_BED) {
+            this.bedTicks++;
+            boolean arrived = this.position().distanceTo(this.bedPos) < 0.6;
+            if (!arrived && this.bedTicks <= 200) {
+                if (this.bedTicks == 60 || this.bedTicks == 120) {
+                    this.getNavigation().stop();
+                    this.getNavigation().moveTo(this.bedPos.x, this.bedPos.y, this.bedPos.z, 0.35);
+                }
+                return;
+            }
+            this.getNavigation().stop();
+            this.setPos(this.bedPos); // gave up walking: stand there anyway
+            anchor(this.bedPos, this.bedYaw);
+            this.noPhysics = true;
+            setAction(GirlAction.STARTDOGGY);
+        } else if (action == GirlAction.WAITDOGGY) {
+            ServerPlayer orderer = this.bedOrderer == null ? null : ((ServerLevel) this.level()).getServer().getPlayerList().getPlayer(this.bedOrderer);
+            if (orderer == null || actionTicks() > BED_WAIT_TICKS) {
+                endScene();
+            } else if (orderer.position().distanceTo(this.position()) < 0.5) {
+                joinAtBed(orderer);
+            }
+        }
+    }
+
+    /** The ordering player walked into her: they take their place and the scene proper begins. */
+    private void joinAtBed(ServerPlayer player) {
+        setPartner(player);
+        this.sceneYaw = this.bedYaw;
+        this.sceneOrigin = this.position();
+        player.connection.teleport(this.getX(), this.getY(), this.getZ(), player.getYRot(), player.getXRot());
+        positionPartner(player, DOGGY_POSE);
+        setAction(GirlAction.DOGGYSTART);
+    }
+
+    /** Server: the strip animation is over: continue to the scene it was for, or end. */
+    protected final void finishStrip() {
+        GirlAction next = this.followUp;
+        this.followUp = GirlAction.NULL;
+        advance(next);
+    }
+
+    /** A named request from the partner's client: a pose to move to, or a girl-specific flag. */
+    public void requestNamed(ServerPlayer player, String name) {
+        if (!isPartner(player)) return;
+        PlayerPose pose = scenePose(name, getAction());
+        if (pose != null) positionPartner(player, pose);
+    }
+
+    /** Ends the scene and frees both sides (natural end, leave key, or the partner leaving). */
+    public void endScene() {
+        releaseAnchor();
+        setPartner(null);
+        setAction(GirlAction.NULL);
+        this.entityData.set(DATA_OPTION, "");
+        this.entityData.set(DATA_SOLO, false);
+        this.pendingStep = GirlAction.NULL;
+        this.followUp = GirlAction.NULL;
+        this.bedPos = null;
+        this.bedOrderer = null;
+        this.approachTicks = -1;
+        this.sceneOrigin = null;
+    }
+
+    protected final void positionPartner(ServerPlayer player, PlayerPose pose) {
+        if (this.sceneOrigin == null) this.sceneOrigin = player.position();
+        double yawRad = Math.toRadians(this.sceneYaw);
+        double rightRad = Math.toRadians(this.sceneYaw + 90.0F);
+        Vec3 pos = this.sceneOrigin
+            .add(-Math.sin(rightRad) * pose.right(), pose.up(), Math.cos(rightRad) * pose.right())
+            .add(-Math.sin(yawRad) * pose.forward(), 0.0, Math.cos(yawRad) * pose.forward());
+        player.connection.teleport(pos.x, pos.y, pos.z, Mth.wrapDegrees(this.sceneYaw + pose.yaw()), pose.pitch());
+    }
+
+    /** {@code distance} blocks in front of the player, by body yaw (1.12.2 {@code getVectorTowardPlayer}). */
+    protected static Vec3 inFrontOf(Player player, double distance) {
+        double yaw = Math.toRadians(player.getYRot());
+        return player.position().add(-Math.sin(yaw) * distance, 0.0, Math.cos(yaw) * distance);
+    }
+
+    private static final int BED_WAIT_TICKS = 6000;
+    /** Partner's place when they join her at the bed (1.12.2 {@code positionPlayerRelative(0,0,0.4,0,60)}). */
+    private static final PlayerPose DOGGY_POSE = new PlayerPose(0.0, 0.0, 0.4, 0.0F, 60.0F);
+
+    private void tickScene() {
+        tickBed();
+        Player partner = getPartner();
+        if (this.entityData.get(DATA_PARTNER) >= 0 && (partner == null || !partner.isAlive() || partner.distanceToSqr(this) > 16 * 16)) {
+            endScene(); // partner logged out, died or teleported away
+            return;
+        }
+        if (!this.level().isClientSide() && getAction() != GirlAction.NULL) tickAction(getAction(), actionTicks());
+        if (this.approachTicks < 0 || partner == null) return;
+        this.approachTicks++;
+        if (this.approachTicks <= 40) {
+            // one step of the remaining distance per tick; arrives exactly on tick 40
+            Vec3 target = inFrontOf(partner, 1.0);
+            int stepsLeft = 40 - this.approachTicks;
+            Vec3 pos = stepsLeft == 0 ? target : this.position().add(target.subtract(this.position()).scale(1.0 / stepsLeft));
+            this.setPos(pos);
+            this.setDeltaMovement(Vec3.ZERO);
+            this.setYRot(this.sceneYaw);
+            this.setYBodyRot(this.sceneYaw);
+            this.setYHeadRot(this.sceneYaw);
+            return;
+        }
+        this.approachTicks = -1;
+        float yaw = Mth.wrapDegrees(partner.getYRot() + 180.0F);
+        anchor(this.position(), yaw);
+        this.sceneYaw = Mth.wrapDegrees(yaw + 180.0F);
+        this.sceneOrigin = null;
+        if (isHorny()) {
+            advance(this.pendingStep); // no payment to wait for
+        } else {
+            setAction(GirlAction.PAYMENT);
+        }
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (!this.level().isClientSide()) tickScene();
+        if (!this.level().isClientSide() && isAnchored() && this.anchorPos != null) {
+            this.setPos(this.anchorPos);
+            this.setDeltaMovement(Vec3.ZERO);
+            this.setYRot(this.anchorYaw);
+            this.setYHeadRot(this.anchorYaw);
+            this.setYBodyRot(this.anchorYaw);
+        }
+    }
+
+    @Override
+    public boolean removeWhenFarAway(double distance) {
+        return false;
+    }
+
+    @Override
+    public boolean isPushable() {
+        return !isAnchored() && super.isPushable();
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Save data                                                          */
+    /* ------------------------------------------------------------------ */
+
+    @Override
+    protected void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putBoolean("Dressed", isDressed());
+    }
+
+    @Override
+    protected void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
+        setDressed(input.getBooleanOr("Dressed", true));
+        // scenes don't survive a reload (as in 1.12.2): start idle and unanchored
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Animation                                                          */
+    /* ------------------------------------------------------------------ */
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.animationCache;
+    }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>("movement", 5, this::movementState));
+        controllers.add(new AnimationController<>("eyes", 10, this::eyesState));
+        controllers.add(new AnimationController<GirlEntity>("action", 0, this::actionState)
+            .setSoundKeyframeHandler(event -> onAnimationEvent(event.keyframeData().getSound())));
+    }
+
+    /** 1.12.2's animations put scene events in sound keyframes ({@code bjiDone}, ...). Client only. */
+    protected void onAnimationEvent(String event) {
+    }
+
+    protected final RawAnimation loop(String name) {
+        return this.namedAnimations.computeIfAbsent("loop:" + name, n -> RawAnimation.begin().thenLoop(animationPrefix() + name));
+    }
+
+    protected final RawAnimation once(String name) {
+        // 1.12.2 played non-looping scene steps once and held the last frame until the next step
+        return this.namedAnimations.computeIfAbsent("once:" + name, n -> RawAnimation.begin().thenPlayAndHold(animationPrefix() + name));
+    }
+
+    private PlayState movementState(AnimationTest<GirlEntity> test) {
+        if (getAction() != GirlAction.NULL && getAction() != GirlAction.WALK_TO_BED) return test.setAndContinue(loop("null"));
+        if (this.isPassenger()) return test.setAndContinue(loop("sit"));
+        return test.setAndContinue(loop(test.isMoving() ? "walk" : "idle"));
+    }
+
+    private PlayState eyesState(AnimationTest<GirlEntity> test) {
+        boolean blink = getAction() == GirlAction.NULL && getAction().autoBlink;
+        return test.setAndContinue(loop(blink ? blinkAnimationName() : "null"));
+    }
+
+    private PlayState actionState(AnimationTest<GirlEntity> test) {
+        GirlAction action = getAction();
+        RawAnimation raw = actionAnimation(action);
+        RawAnimation animation = raw == null ? loop("null") : raw;
+        test.controller().setTransitionTicks(action.transitionTicks);
+        return test.setAndContinue(animation);
+    }
+}

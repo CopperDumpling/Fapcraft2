@@ -1,0 +1,31 @@
+package com.trolmastercard.sexmod.registry;
+
+import com.trolmastercard.sexmod.Fapcraft;
+import com.trolmastercard.sexmod.entity.jenny.JennyEntity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+
+/** Entity types: girls, player variants, scene entities, eggs/projectiles (Phase 2 onward). */
+public final class ModEntities {
+    public static final DeferredRegister.Entities ENTITIES = DeferredRegister.createEntities(Fapcraft.MODID);
+
+    // 1.12.2: 0.49 x 1.95, eye height 1.64, tracked within 50 blocks
+    public static final DeferredHolder<EntityType<?>, EntityType<JennyEntity>> JENNY = ENTITIES.registerEntityType(
+        "jenny", JennyEntity::new, MobCategory.CREATURE, b -> b.sized(0.49F, 1.95F).eyeHeight(1.64F).clientTrackingRange(4));
+
+    private ModEntities() {
+    }
+
+    @EventBusSubscriber(modid = Fapcraft.MODID)
+    static final class Attributes {
+        @SubscribeEvent
+        static void onCreateAttributes(EntityAttributeCreationEvent event) {
+            event.put(JENNY.get(), JennyEntity.createAttributes().build());
+        }
+    }
+}
