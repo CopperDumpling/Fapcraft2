@@ -95,6 +95,8 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
 
     private final AnimatableInstanceCache animationCache = GeckoLibUtil.createInstanceCache(this);
     private final Map<String, RawAnimation> namedAnimations = new ConcurrentHashMap<>();
+    /** Client: {@link #restartActionAnimation} is pending. */
+    private boolean restartAction;
 
     /** Server: tick the current action started on (per girl; see {@link GirlAction}). */
     private int actionStartTick;
@@ -948,10 +950,13 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
             .setSoundKeyframeHandler(event -> onAnimationEvent(event.keyframeData().getSound())));
     }
 
-    /** Client: starts the current scene step's animation over (1.12.2 {@code resetAnimationControllerOffset}). */
+    /**
+     * Client: starts the current scene step's animation over (1.12.2 {@code resetAnimationControllerOffset}).
+     * Applied when the controller next asks for its animation: keyframe events call this from inside
+     * the controller's update, where resetting it would break the rest of that update.
+     */
     public void restartActionAnimation() {
-        AnimationController<?> controller = this.animationCache.getManagerForId(getId()).getAnimationControllers().get("action");
-        if (controller != null) controller.reset();
+        this.restartAction = true;
     }
 
     /** 1.12.2's animations put scene events in sound keyframes ({@code bjiDone}, ...). Client only. */
@@ -1000,6 +1005,10 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
         RawAnimation raw = actionAnimation(action);
         RawAnimation animation = raw == null ? loop("null") : raw;
         test.controller().setTransitionTicks(action.transitionTicks);
+        if (this.restartAction) {
+            this.restartAction = false;
+            test.controller().reset();
+        }
         return test.setAndContinue(animation);
     }
 }
