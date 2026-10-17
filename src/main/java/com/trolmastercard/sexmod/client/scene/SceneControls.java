@@ -18,6 +18,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.MovementInputUpdateEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.event.RenderHandEvent;
 import net.neoforged.neoforge.client.event.RenderPlayerEvent;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.jspecify.annotations.Nullable;
@@ -29,7 +30,8 @@ import org.jspecify.annotations.Nullable;
  *   <li>holding sneak asks for her next step (e.g. suck → thrust);</li>
  *   <li>jump with a full meter asks for the climax;</li>
  *   <li>the leave key (right shift) ends the scene;</li>
- *   <li>partners aren't drawn as players during scene steps: her model draws their body.</li>
+ *   <li>partners aren't drawn as players (nor their first-person hand) during scene steps: her
+ *   model draws their body.</li>
  * </ul>
  */
 @EventBusSubscriber(modid = Fapcraft.MODID, value = Dist.CLIENT)
@@ -124,6 +126,13 @@ public final class SceneControls {
 
     /** An input with no keys and no movement (the base {@code ClientInput} never updates). */
     private static final class FrozenInput extends ClientInput {
+    }
+
+    /** The first-person hand and held item are hidden too while her model draws the partner. */
+    @SubscribeEvent
+    static void onRenderHand(RenderHandEvent event) {
+        GirlEntity girl = currentGirl();
+        if (girl != null && girl.getAction().hasPlayer) event.setCanceled(true);
     }
 
     @SubscribeEvent
