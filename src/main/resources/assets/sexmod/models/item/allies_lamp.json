@@ -1,5 +1,4 @@
 {
-  "parent": "builtin/entity",
   "credit": "Made with Blockbench",
   "texture_size": [
     80,
@@ -105,5 +104,8 @@
         0.5
       ]
     }
+  },
+  "textures": {
+    "particle": "minecraft:block/diamond_block"
   }
 }

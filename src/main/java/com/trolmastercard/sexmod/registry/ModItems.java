@@ -1,6 +1,7 @@
 package com.trolmastercard.sexmod.registry;
 
 import com.trolmastercard.sexmod.Fapcraft;
+import com.trolmastercard.sexmod.item.AlliesLampItem;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.FishingRodItem;
 import net.minecraft.world.item.SpawnEggItem;
@@ -33,6 +34,10 @@ public final class ModItems {
     public static final DeferredItem<FishingRodItem> LUNA_ROD = ITEMS.registerItem(
         "luna_rod", FishingRodItem::new, p -> p.durability(64).enchantable(1));
 
+    /** 1.12.2 {@code AlliesLampItem}: summons Allie, three wishes. */
+    public static final DeferredItem<AlliesLampItem> ALLIES_LAMP = ITEMS.registerItem(
+        "allies_lamp", AlliesLampItem::new, p -> p.stacksTo(1));
+
     private ModItems() {
     }
 
@@ -50,6 +55,7 @@ public final class ModItems {
                 event.accept(BEE_SPAWN_EGG);
             } else if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
                 event.accept(LUNA_ROD);
+                event.accept(ALLIES_LAMP);
             }
         }
     }

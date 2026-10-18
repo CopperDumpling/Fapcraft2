@@ -1,6 +1,7 @@
 package com.trolmastercard.sexmod.client.render;
 
 import com.trolmastercard.sexmod.Fapcraft;
+import com.trolmastercard.sexmod.client.render.allie.AllieRenderer;
 import com.trolmastercard.sexmod.client.render.slime.WildSlimeModel;
 import com.trolmastercard.sexmod.client.render.slime.WildSlimeRenderer;
 import com.trolmastercard.sexmod.client.render.luna.LunaHookRenderer;
@@ -90,6 +91,8 @@ public final class ModRenderers {
         // one model for every outfit; she never wears armour or holds weapons
         event.registerEntityRenderer(ModEntities.MANGLELIE.get(), ctx -> new GirlRenderer<ManglelieEntity>(ctx,
             new GirlModel<>("manglelie", "manglelie", "manglelie"), JENNY_WEAPON, ArmorLayer.Bones.NONE).withRenderLayer(ManglelieLayer::new));
+        // one model for every outfit; she never wears armour or holds weapons
+        event.registerEntityRenderer(ModEntities.ALLIE.get(), ctx -> new AllieRenderer(ctx, JENNY_WEAPON));
     }
 
     @SubscribeEvent

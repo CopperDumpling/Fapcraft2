@@ -256,6 +256,11 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
         }
     }
 
+    /** Server: the current action's timer starts over (1.12.2 {@code ResetControllerPacket}). */
+    protected final void restartActionTimer() {
+        this.actionStartTick = this.tickCount;
+    }
+
     /** Ticks since the current action started (server). */
     public int actionTicks() {
         return this.tickCount - this.actionStartTick;
@@ -280,6 +285,10 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
     /** Whether closing the mid-scene menu without picking ends the scene (1.12.2 Bia's {@code ac}; Ellie kept hugging). */
     public boolean endsOnDeclinedChoice() {
         return false;
+    }
+
+    /** Client: her partner closed the mid-scene menu without picking (Allie's wish menu then comes back). */
+    public void onChoiceDeclined() {
     }
 
     /** Server: her partner picked {@code option} while she {@link #awaitsChoice()}. */
@@ -1032,9 +1041,16 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
     }
 
     private PlayState movementState(AnimationTest<GirlEntity> test) {
+        String always = constantMovementAnimation();
+        if (always != null) return test.setAndContinue(loop(always));
         if (getAction() != GirlAction.NULL && getAction() != GirlAction.WALK_TO_BED) return rest(test);
         if (this.isPassenger()) return test.setAndContinue(loop("sit"));
         return test.setAndContinue(loop(movementAnimation(test.isMoving())));
+    }
+
+    /** A movement animation that loops whatever she does (Allie's tail), or null for walk / idle. */
+    protected @Nullable String constantMovementAnimation() {
+        return null;
     }
 
     /** Walk / idle animation name while she does nothing else. */

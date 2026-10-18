@@ -62,7 +62,8 @@ public final class PartnerSkins {
         }
     }
 
-    private static @Nullable NativeImage readPixels(Identifier texture) {
+    /** A copy of a loaded texture's pixels: a downloaded skin, or a resource texture; null if not loaded yet. */
+    public static @Nullable NativeImage readPixels(Identifier texture) {
         TextureManager textures = Minecraft.getInstance().getTextureManager();
         AbstractTexture loaded = textures.getTexture(texture);
         if (loaded instanceof DynamicTexture dynamic && dynamic.getPixels() != null) {

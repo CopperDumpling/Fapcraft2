@@ -1,6 +1,7 @@
 package com.trolmastercard.sexmod.registry;
 
 import com.trolmastercard.sexmod.Fapcraft;
+import com.trolmastercard.sexmod.entity.allie.AllieEntity;
 import com.trolmastercard.sexmod.entity.bee.BeeEntity;
 import com.trolmastercard.sexmod.entity.bia.BiaEntity;
 import com.trolmastercard.sexmod.entity.ellie.EllieEntity;
@@ -57,6 +58,10 @@ public final class ModEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<BeeEntity>> BEE = ENTITIES.registerEntityType(
         "bee", BeeEntity::new, MobCategory.CREATURE, b -> b.sized(0.3F, 1.5F).clientTrackingRange(4));
 
+    // 1.12.2: 0.5 x 1.0 (her lamp offset); only ever summoned by the lamp, and never saved
+    public static final DeferredHolder<EntityType<?>, EntityType<AllieEntity>> ALLIE = ENTITIES.registerEntityType(
+        "allie", AllieEntity::new, MobCategory.MISC, b -> b.sized(0.5F, 1.0F).noSave().clientTrackingRange(4));
+
     private ModEntities() {
     }
 
@@ -72,6 +77,7 @@ public final class ModEntities {
             event.put(MANGLELIE.get(), ManglelieEntity.createAttributes().build());
             event.put(LUNA.get(), LunaEntity.createAttributes().build());
             event.put(BEE.get(), BeeEntity.createAttributes().build());
+            event.put(ALLIE.get(), AllieEntity.createAttributes().build());
         }
 
         @SubscribeEvent

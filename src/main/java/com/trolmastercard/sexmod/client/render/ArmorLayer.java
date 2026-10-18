@@ -133,7 +133,7 @@ public class ArmorLayer<T extends GirlEntity> extends GeoRenderLayer<T, Void, Li
         int light = pass.packedLight();
         int overlay = pass.packedOverlay();
         int color = ARGB.multiply(pass.renderColor(), look.tint());
-        renderTasks.submitCustomGeometry(pass.poseStack(), RenderTypes.entityCutout(texture), (pose, buffer) -> {
+        renderTasks.submitCustomGeometry(pass.poseStack(), RenderTypes.entityCutoutCull(texture), (pose, buffer) -> {
             PoseStack poseStack = pass.poseStack();
             poseStack.pushPose();
             poseStack.last().set(pose);

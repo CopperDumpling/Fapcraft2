@@ -43,7 +43,7 @@ Each NPC girl has a player variant, a GeckoLib model, a renderer and scene anima
 | Ellie | `EllieEntity` | `ElliePlayerEntity` | |
 | Bia | `BiaEntity` | `BiaPlayerEntity` | |
 | Luna | `LunaEntity` | `LunaPlayerEntity` | Cat model; fishing + eat/throw packets, `LunaRodItem` |
-| Allie | `AllieEntity` | `AlliePlayerEntity` | `AlliesLampItem`, wishes, `AllieWorldData` |
+| Allie | `AllieEntity` | `AlliePlayerEntity` | `AlliesLampItem`, wishes (`AllieWorldData` is misnamed: it stores Galath's custom model name per master, see Phase 5) |
 | Bee | `BeeEntity` | `BeePlayerEntity` | Chest opening, dialogue screen (`BeeWorldData` is misnamed: it is the Galath/Manglelie spawn list, see `NetherSpawns`) |
 | Slime | `SlimeEntity`, `WildSlimeEntity` | `SlimePlayerEntity` | Wild variant has a face layer |
 | Kobold | `KoboldEntity` (3.2k lines) | `KoboldPlayerEntity` | Tribes (manager, claim/follow/UI packets, name screen), eggs + projectile, mining / tree felling, `DragonStaffItem` |
@@ -52,10 +52,10 @@ Each NPC girl has a player variant, a GeckoLib model, a renderer and scene anima
 | Manglelie | `ManglelieEntity` | - | |
 | Dragon | `DragonEntity` | - | Breath particle |
 | Cummy | `CummyEntity` | - | Effect entity |
-| Pyrocinical | `BasicGirlEntity` | - | Rare ambient Nether wanderer; player hits stop it and remove it 6.25 s later |
+| Pyrocinical | `BasicGirlEntity` | - | **Excluded from the port** (was a rare ambient Nether wanderer) |
 
 Shared base: `BaseGirlEntity` (1.8k lines), `AbstractGirlNpcEntity`, `AbstractPlayerGirlEntity`,
-`AbstractNpcOnlyEntity`, `BasicGirlEntity`, `BodyParts`, `BoneType`, `NpcType`, colours, kobold names.
+`AbstractNpcOnlyEntity`, `BodyParts`, `BoneType`, `NpcType`, colours, kobold names.
 
 ### Systems
 - **Scenes:** scene entities, renderer + model, player camera/movement/teleport, `Action` state
@@ -173,9 +173,9 @@ it); the importer pins 1583 such channels at t=0 (`hold_first_keyframes`).
   flies off on climax.
 
 ### Phase 4: Remaining NPC girls
-Ellie, Bia, Slime (+ wild), Manglelie, Luna (fishing), Bee (chest, dialogue, world data), Allie
-(lamp, wishes, world data), the pyrocinical, each at parity before the next. **Exit:** all simple
-girls at parity.
+Ellie, Bia, Slime (+ wild), Manglelie, Luna (fishing), Bee (chest, dialogue), Allie
+(lamp, wishes), each at parity before the next. **Exit:** all simple girls at parity. The
+pyrocinical (1.12 `BasicGirlEntity`) is excluded from the port.
 
 **4a: Ellie (done)**
 - [x] Basics (done): spawn egg, renderer (her armour bones incl. headband, hotpants, slip),
@@ -247,7 +247,7 @@ girls at parity.
   (1.12 damaged an internal rod that would crash her after 64 catches); she puts her clothes back
   on after a scene and fishes again after a bed scene (1.12 left both off for good).
 
-**4f: Bee (built, awaiting in-game check)**
+**4f: Bee (done)**
 - [x] Spawn egg, forest spawn (weight 5), renderer (her head held tilted as in 1.12, her chest
   shown only with her chest idle); not a companion (no weapons, menu, regeneration, downing);
   flies (flying speed 0.4, never over 3 blocks above ground), glides down while not in the mood,
@@ -267,10 +267,31 @@ girls at parity.
   just taken to the player show (1.12 cut them off after one tick).
 - Not ported: giving her a chest item (dead code in 1.12).
 
+**4g: Allie (built, awaiting in-game check)**
+- [x] Allies lamp: right-click starts the rub, which runs while the lamp is in a hand: sparkles
+  from 2.5 s, and at 4.75 s Allie appears two blocks ahead facing the player (on sand she
+  screams and vanishes, with a phobia line). Three wishes (shown on used lamps); no rub while
+  its summoner's Allie is out or in a scene. First-person rub animation with the player's own
+  arms (their skin); HUD hidden meanwhile. In mineshaft, dungeon and mansion chests at the 1.12
+  rates (1.12's desert pyramid had no third pool, so none there).
+- [x] Allie: summoned only (no spawn egg: 1.12's removed her at once), not saved, floats in
+  place, holds the summoner still, gone when her visit ends or the summoner leaves. First visit
+  the long introduction, later "N wishes left"; then the wish menu, which reopens until a wish is
+  picked. Portal particles off her tail; she shrinks away rising.
+- [x] Make me rich: 1–2 each of diamonds, emeralds, gold ingots, then she vanishes.
+- [x] Deepthroat (summoner steps up to her): start, slow ⇄ fast on sneak, climax. Reverse
+  cowgirl (summoner put where she floats): start, slow (3 variants) ⇄ fast on sneak (held:
+  continues in 3 variants), climax. Both on her `boyCam` bone; the climax ends her visit.
+- Changed: summon, wish, preparing and vanishing are timed on the server (1.12 drove them from
+  client keyframes); she shrinks over 2 s (1.12: 1 % per rendered frame); the leave key works in
+  the wish menu (1.12 trapped the summoner in it); the lamp's arms show only for first-person
+  hand rendering (1.12 also drew them in the inventory icon); one Allie per summoner at a time
+  (1.12: per lamp stack).
+
 ### Phase 5: Complex girls
 - **Kobold:** tribes as `SavedData`, eggs, tribe UI, mining / tree felling (likely `Brain`), dragon staff + dragon.
 - **Goblin:** shoulder riding (passenger + first-person render), gesture pad, lair + locate command.
-- **Galath:** flight + HUD, pounce / back-off, escape minigame HUD, particles, coin, damage source;
+- **Galath:** her custom model name per master (1.12 `AllieWorldData`), flight + HUD, pounce / back-off, escape minigame HUD, particles, coin, damage source;
   with Manglelie: adoption, riding Galath's head, the corruption beam + arrow, the threesome,
   Mang's damage forwarded to her Galath, the angry face, Mang not fleeing near a mastered Galath.
 
@@ -278,7 +299,7 @@ girls at parity.
 
 ### Phase 6: Player-as-girl
 Render the player as a girl (renderer swap), sync model state via attachments, transformation,
-gender swap screen + command. **Exit:** every player variant renders and plays scenes in multiplayer.
+gender swap screen + command; player-girls can't rub Allie's lamp. **Exit:** every player variant renders and plays scenes in multiplayer.
 
 ### Phase 7: Customisation, custom models, reskins
 Clothing screen + sliders; legacy custom models on GeckoLib 5 bone hooks (hidden bones,

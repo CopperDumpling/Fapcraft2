@@ -198,6 +198,28 @@ def hold_first_keyframes(folder: Path) -> int:
     return count
 
 
+# Break particles for the GeckoLib items (their 1.12 models named no texture). Must be atlas
+# sprites; vanilla blocks in the item's colour.
+ITEM_PARTICLES = {
+    "allies_lamp": "minecraft:block/diamond_block",
+}
+
+
+def fix_item_models(folder: Path) -> int:
+    """1.12's GeckoLib item models had parent builtin/entity, which 26.3 lacks. GeckoLib's special
+    item renderer draws them; the model keeps only its display transforms (and a particle)."""
+    count = 0
+    for f in sorted(folder.glob("*.json")):
+        data = json.loads(f.read_text(encoding="utf-8"))
+        if data.get("parent") == "builtin/entity":
+            del data["parent"]
+            if f.stem in ITEM_PARTICLES:
+                data.setdefault("textures", {})["particle"] = ITEM_PARTICLES[f.stem]
+            f.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            count += 1
+    return count
+
+
 def main():
     report = {}
     report["geckolib/models"] = copy_tree(OLD / "geo", ASSETS / "geckolib/models")
@@ -207,6 +229,7 @@ def main():
     report["textures"] = copy_tree(OLD / "textures", ASSETS / "textures")
     report["sounds"] = copy_tree(OLD / "sounds", ASSETS / "sounds", only={".ogg"})
     report["models/item"] = copy_tree(OLD / "models/item", ASSETS / "models/item")
+    report["builtin/entity parents removed"] = fix_item_models(ASSETS / "models/item")
     report["structure"] = copy_tree(OLD / "structures", DATA / "structure")
     shutil.copy2(SRC / "logo.png", ROOT / "src/main/resources/logo.png")
 

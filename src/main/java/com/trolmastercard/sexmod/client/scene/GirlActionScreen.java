@@ -13,6 +13,7 @@ import java.util.List;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -133,11 +134,24 @@ public class GirlActionScreen extends Screen {
         onClose();
     }
 
+    /** Mid-scene the leave key still ends the scene: Allie's wish menu keeps coming back until it is used or a wish picked. */
+    @Override
+    public boolean keyPressed(KeyEvent event) {
+        if (this.optionsOnly && SceneControls.LEAVE_SCENE.matches(event)) {
+            ClientPacketDistributor.sendToServer(LeaveScenePayload.INSTANCE);
+            this.chosen = true;
+            onClose();
+            return true;
+        }
+        return super.keyPressed(event);
+    }
+
     @Override
     public void removed() {
         super.removed();
-        if (this.optionsOnly && !this.chosen && this.girl.endsOnDeclinedChoice()) {
-            ClientPacketDistributor.sendToServer(LeaveScenePayload.INSTANCE);
+        if (this.optionsOnly && !this.chosen) {
+            if (this.girl.endsOnDeclinedChoice()) ClientPacketDistributor.sendToServer(LeaveScenePayload.INSTANCE);
+            this.girl.onChoiceDeclined();
         }
     }
 
