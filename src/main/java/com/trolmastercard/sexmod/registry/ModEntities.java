@@ -1,6 +1,7 @@
 package com.trolmastercard.sexmod.registry;
 
 import com.trolmastercard.sexmod.Fapcraft;
+import com.trolmastercard.sexmod.entity.bee.BeeEntity;
 import com.trolmastercard.sexmod.entity.bia.BiaEntity;
 import com.trolmastercard.sexmod.entity.ellie.EllieEntity;
 import com.trolmastercard.sexmod.entity.jenny.JennyEntity;
@@ -52,6 +53,10 @@ public final class ModEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<LunaHookEntity>> LUNA_HOOK = ENTITIES.registerEntityType(
         "luna_hook", LunaHookEntity::new, MobCategory.MISC, b -> b.sized(0.25F, 0.25F).noSave().noSummon().clientTrackingRange(4).updateInterval(5));
 
+    // 1.12.2: 0.3 x 1.5, the default eye height; spawns in forests (biome modifier bee_spawns)
+    public static final DeferredHolder<EntityType<?>, EntityType<BeeEntity>> BEE = ENTITIES.registerEntityType(
+        "bee", BeeEntity::new, MobCategory.CREATURE, b -> b.sized(0.3F, 1.5F).clientTrackingRange(4));
+
     private ModEntities() {
     }
 
@@ -66,6 +71,7 @@ public final class ModEntities {
             event.put(WILD_SLIME.get(), Monster.createMonsterAttributes().build());
             event.put(MANGLELIE.get(), ManglelieEntity.createAttributes().build());
             event.put(LUNA.get(), LunaEntity.createAttributes().build());
+            event.put(BEE.get(), BeeEntity.createAttributes().build());
         }
 
         @SubscribeEvent
@@ -74,6 +80,8 @@ public final class ModEntities {
                 Mob::checkMobSpawnRules, RegisterSpawnPlacementsEvent.Operation.REPLACE);
             event.register(MANGLELIE.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 ManglelieEntity::checkSpawnRules, RegisterSpawnPlacementsEvent.Operation.REPLACE);
+            event.register(BEE.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                Mob::checkMobSpawnRules, RegisterSpawnPlacementsEvent.Operation.REPLACE);
         }
     }
 }

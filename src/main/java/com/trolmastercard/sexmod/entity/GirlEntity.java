@@ -506,15 +506,24 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
         setAction(GirlAction.THROW_PEARL);
     }
 
+    /** Ticks into her throw-pearl animation that she throws, and that she arrives home at the latest. */
+    protected int pearlThrowTicks() {
+        return PEARL_THROW_TICK;
+    }
+
+    protected int pearlArriveTicks() {
+        return PEARL_ARRIVE_TICK;
+    }
+
     private void tickPearl(int ticks) {
-        if (ticks == PEARL_THROW_TICK && this.pearl == null) {
+        if (ticks == pearlThrowTicks() && this.pearl == null) {
             Vec3 target = home();
             ThrownEnderpearl thrown = new ThrownEnderpearl(this.level(), this, new ItemStack(Items.ENDER_PEARL));
             float distance = (float) this.position().distanceTo(target);
             thrown.shoot(target.x - this.getX(), target.y - this.getY(), target.z - this.getZ(), Math.min(4.0F, distance * 0.1F), 0.0F);
             this.level().addFreshEntity(thrown);
             this.pearl = thrown;
-        } else if (ticks >= PEARL_ARRIVE_TICK) {
+        } else if (ticks >= pearlArriveTicks()) {
             arriveHome(home()); // the pearl missed (or is still flying): she goes there anyway
         }
     }
@@ -552,8 +561,8 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
         if (!source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
             // 1.12.2 GirlCombatProtection: nothing hurts her during a scene
             if (this.entityData.get(DATA_PARTNER) >= 0 || this.downed) return false;
-            if (hasMaster() && getHealth() - damage <= 0.0F) {
-                // with a master she is downed at 1 HP instead of dying (1.12.2 GirlFollowGoal.a)
+            if (isCompanion() && hasMaster() && getHealth() - damage <= 0.0F) {
+                // with a master a companion is downed at 1 HP instead of dying (1.12.2 GirlFollowGoal.a)
                 this.downed = true;
                 setAction(GirlAction.DOWNED);
                 this.getNavigation().stop();

@@ -89,6 +89,11 @@ public enum GirlAction {
     COWGIRL_SITTING_SLOW(5, true, false),
     COWGIRL_SITTING_FAST(5, true, false),
     COWGIRL_SITTING_CUM(5, true, false),
+    // Bee: the wild bee's scene with whoever she reaches
+    CITIZEN_START(0, true, false),
+    CITIZEN_SLOW(0, true, false),
+    CITIZEN_FAST(0, true, false),
+    CITIZEN_CUM(2, true, false),
     // companion (1.12.2 GirlFollowGoal + the pearl home)
     ATTACK(0, false, true, false),
     RIDE(0, false, true, false),

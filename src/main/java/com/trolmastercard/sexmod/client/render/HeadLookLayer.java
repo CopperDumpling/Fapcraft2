@@ -33,7 +33,8 @@ public class HeadLookLayer<T extends GirlEntity> extends GeoRenderLayer<T, Void,
     public void preRender(RenderPassInfo<LivingEntityRenderState> pass, SubmitNodeCollector renderTasks) {
         if (!pass.renderState().getOrDefaultGeckolibData(LOOKS, false)) return;
         float yaw = pass.renderState().yRot * Mth.DEG_TO_RAD;
-        float pitch = pass.renderState().xRot * Mth.DEG_TO_RAD;
+        float restPitch = getGeoModel() instanceof GirlModel<?> model ? model.headRestPitch() : 0.0F;
+        float pitch = restPitch + pass.renderState().xRot * Mth.DEG_TO_RAD;
         // 1.12.2 set the bones' whole rotation; a GeckoLib 5 snapshot adds to the model's own
         pass.addBoneUpdater((info, snapshots) -> {
             info.model().getBone("neck").ifPresent(bone -> snapshots.get(bone).setRotY(yaw * 0.5F - bone.baseRotY()));

@@ -44,7 +44,7 @@ Each NPC girl has a player variant, a GeckoLib model, a renderer and scene anima
 | Bia | `BiaEntity` | `BiaPlayerEntity` | |
 | Luna | `LunaEntity` | `LunaPlayerEntity` | Cat model; fishing + eat/throw packets, `LunaRodItem` |
 | Allie | `AllieEntity` | `AlliePlayerEntity` | `AlliesLampItem`, wishes, `AllieWorldData` |
-| Bee | `BeeEntity` | `BeePlayerEntity` | Chest opening, dialogue screen, `BeeWorldData` |
+| Bee | `BeeEntity` | `BeePlayerEntity` | Chest opening, dialogue screen (`BeeWorldData` is misnamed: it is the Galath/Manglelie spawn list, see `NetherSpawns`) |
 | Slime | `SlimeEntity`, `WildSlimeEntity` | `SlimePlayerEntity` | Wild variant has a face layer |
 | Kobold | `KoboldEntity` (3.2k lines) | `KoboldPlayerEntity` | Tribes (manager, claim/follow/UI packets, name screen), eggs + projectile, mining / tree felling, `DragonStaffItem` |
 | Goblin | `GoblinEntity` (2.2k) | `GoblinPlayerEntity` | Shoulder riding, throw/pickup pad, first-person renderer, lair + locate command |
@@ -226,7 +226,7 @@ girls at parity.
   threesome, damage forwarded to her Galath, the angry face. They all need a Galath.
 - Not ported: 1.12's wing mesh for her (cast her to a Galath interface she lacks).
 
-**4e: Luna (built, awaiting in-game check)**
+**4e: Luna (done)**
 - [x] Spawn egg, renderer (cat model, her hair hangs straight while she tilts her head unless
   anchored), weapon grip, a fishing rod slot in her equipment menu (1.12 layout), iron sword, bow
   and fishing rod to start; twice as fast alone as with a master; jumps higher (much higher out of
@@ -246,6 +246,26 @@ girls at parity.
 - Changed: she looks for water once a second instead of every tick; her rod no longer wears out
   (1.12 damaged an internal rod that would crash her after 64 catches); she puts her clothes back
   on after a scene and fishes again after a bed scene (1.12 left both off for good).
+
+**4f: Bee (built, awaiting in-game check)**
+- [x] Spawn egg, forest spawn (weight 5), renderer (her head held tilted as in 1.12, her chest
+  shown only with her chest idle); not a companion (no weapons, menu, regeneration, downing);
+  flies (flying speed 0.4, never over 3 blocks above ground), glides down while not in the mood,
+  no fall damage; panics when hurt; 12 HP.
+- [x] Wild approach: alone and masterless her mood builds (in the mood 1600 ticks after she
+  appears, 4800 after a scene; the horny potion at once); then she flies to the nearest player
+  within 10 and, within 1.5, starts her scene in front of them: start, slow ⇄ fast on sneak,
+  climax on a full meter + jump, black transition.
+- [x] After the climax: sparkles, then a coin flip: hearts and a chest, or angry clouds; a bee
+  with a chest already just shows hearts.
+- [x] With a chest, right-click opens her dialogue: follow me / stop following (she flies to a
+  master more than 5 blocks away, faster the further, and is put next to them beyond 16), go
+  home (throws a pearl and arrives home), set home (house icon), and the chest icon opens her
+  27-slot chest (vanilla chest menu, saved with her).
+- Changed: one flag for her chest (1.12 drew the dialogue's chest icon and gated its click on a
+  second flag that was never set, so the chest could not be opened); the hearts of a bee that has
+  just taken to the player show (1.12 cut them off after one tick).
+- Not ported: giving her a chest item (dead code in 1.12).
 
 ### Phase 5: Complex girls
 - **Kobold:** tribes as `SavedData`, eggs, tribe UI, mining / tree felling (likely `Brain`), dragon staff + dragon.

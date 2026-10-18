@@ -27,6 +27,8 @@ public final class ModItems {
 
     public static final DeferredItem<SpawnEggItem> LUNA_SPAWN_EGG = ITEMS.registerItem(
         "luna_spawn_egg", SpawnEggItem::new, p -> p.spawnEgg(ModEntities.LUNA.get()));
+    public static final DeferredItem<SpawnEggItem> BEE_SPAWN_EGG = ITEMS.registerItem(
+        "bee_spawn_egg", SpawnEggItem::new, p -> p.spawnEgg(ModEntities.BEE.get()));
     /** 1.12.2 {@code LunaRodItem}: a plain fishing rod (64 uses) whose model shows Luna's cast too. */
     public static final DeferredItem<FishingRodItem> LUNA_ROD = ITEMS.registerItem(
         "luna_rod", FishingRodItem::new, p -> p.durability(64).enchantable(1));
@@ -45,6 +47,7 @@ public final class ModItems {
                 event.accept(SLIME_SPAWN_EGG);
                 event.accept(MANGLELIE_SPAWN_EGG);
                 event.accept(LUNA_SPAWN_EGG);
+                event.accept(BEE_SPAWN_EGG);
             } else if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
                 event.accept(LUNA_ROD);
             }

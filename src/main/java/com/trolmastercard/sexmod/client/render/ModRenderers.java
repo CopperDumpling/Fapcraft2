@@ -5,6 +5,7 @@ import com.trolmastercard.sexmod.client.render.slime.WildSlimeModel;
 import com.trolmastercard.sexmod.client.render.slime.WildSlimeRenderer;
 import com.trolmastercard.sexmod.client.render.luna.LunaHookRenderer;
 import com.trolmastercard.sexmod.client.render.luna.LunaRodCast;
+import com.trolmastercard.sexmod.entity.bee.BeeEntity;
 import com.trolmastercard.sexmod.entity.ellie.EllieEntity;
 import com.trolmastercard.sexmod.entity.luna.LunaEntity;
 import com.trolmastercard.sexmod.entity.manglelie.ManglelieEntity;
@@ -83,6 +84,9 @@ public final class ModRenderers {
         event.registerEntityRenderer(ModEntities.LUNA.get(), ctx -> new GirlRenderer<LunaEntity>(ctx, new GirlModel<>("cat", "cat", "cat"), LUNA_WEAPON, LUNA_ARMOR)
             .withRenderLayer(renderer -> new LunaLayer(ctx, renderer)));
         event.registerEntityRenderer(ModEntities.LUNA_HOOK.get(), LunaHookRenderer::new);
+        // one model for every outfit; she never wears armour or holds weapons
+        event.registerEntityRenderer(ModEntities.BEE.get(), ctx -> new GirlRenderer<BeeEntity>(ctx,
+            new GirlModel<BeeEntity>("bee", "bee", "bee").withHeadRestPitch(1.0F), JENNY_WEAPON, ArmorLayer.Bones.NONE).withRenderLayer(BeeLayer::new));
         // one model for every outfit; she never wears armour or holds weapons
         event.registerEntityRenderer(ModEntities.MANGLELIE.get(), ctx -> new GirlRenderer<ManglelieEntity>(ctx,
             new GirlModel<>("manglelie", "manglelie", "manglelie"), JENNY_WEAPON, ArmorLayer.Bones.NONE).withRenderLayer(ManglelieLayer::new));

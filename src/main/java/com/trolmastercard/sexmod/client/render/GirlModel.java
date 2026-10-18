@@ -16,6 +16,8 @@ public class GirlModel<T extends GirlEntity> extends GeoModel<T> {
     private final Identifier nude;
     private final Identifier animations;
     private final Identifier texture;
+    /** Head pitch (radians) while she looks straight ahead; see {@link HeadLookLayer}. */
+    private float headRestPitch;
 
     /** Jenny's layout: {@code <name>/<name>dressed}, {@code <name>/<name>nude}. */
     public GirlModel(String name) {
@@ -28,6 +30,16 @@ public class GirlModel<T extends GirlEntity> extends GeoModel<T> {
         this.nude = Fapcraft.id(name + "/" + nudeFile);
         this.animations = Fapcraft.id(name + "/" + name);
         this.texture = Fapcraft.id("textures/entity/" + name + "/" + name + ".png");
+    }
+
+    /** 1.12.2's bee model held her head this far tilted when she looked straight ahead. */
+    public GirlModel<T> withHeadRestPitch(float radians) {
+        this.headRestPitch = radians;
+        return this;
+    }
+
+    public float headRestPitch() {
+        return this.headRestPitch;
     }
 
     @Override
