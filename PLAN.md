@@ -267,7 +267,7 @@ pyrocinical (1.12 `BasicGirlEntity`) is excluded from the port.
   just taken to the player show (1.12 cut them off after one tick).
 - Not ported: giving her a chest item (dead code in 1.12).
 
-**4g: Allie (built, awaiting in-game check)**
+**4g: Allie (done)**
 - [x] Allies lamp: right-click starts the rub, which runs while the lamp is in a hand: sparkles
   from 2.5 s, and at 4.75 s Allie appears two blocks ahead facing the player (on sand she
   screams and vanishes, with a phobia line). Three wishes (shown on used lamps); no rub while
@@ -287,6 +287,8 @@ pyrocinical (1.12 `BasicGirlEntity`) is excluded from the port.
   the wish menu (1.12 trapped the summoner in it); the lamp's arms show only for first-person
   hand rendering (1.12 also drew them in the inventory icon); one Allie per summoner at a time
   (1.12: per lamp stack).
+- Shared fix: every girl (and her armour) is drawn with back faces culled, as 1.12 drew them; with
+  both sides drawn, cubes overlapping a hair apart flickered.
 
 ### Phase 5: Complex girls
 - **Kobold:** tribes as `SavedData`, eggs, tribe UI, mining / tree felling (likely `Brain`), dragon staff + dragon.
