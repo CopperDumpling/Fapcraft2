@@ -15,14 +15,18 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 /**
- * The equipment screen (1.12.2 {@code GirlInventoryContainerGui2}): her weapon, bow and armour
- * slots over the player's inventory, drawn from {@code girlinventory.png} with no labels.
+ * The equipment screen (1.12.2 {@code GirlInventoryContainerGui2}, Luna's {@code GirlInventoryContainerGui}):
+ * her weapon, bow and armour slots (and Luna's rod) over the player's inventory, drawn from
+ * {@code girlinventory.png} with no labels.
  */
 public class GirlEquipmentScreen extends AbstractContainerScreen<GirlEquipmentMenu> {
     static final Identifier TEXTURE = Fapcraft.id("textures/gui/girlinventory.png");
     /** The panel in the texture: 176x114 from (33, 16), drawn 52 below the menu's usual top edge. */
     private static final int PANEL_U = 33;
     private static final int PANEL_V = 16;
+    /** Luna's panel, with the rod slot (1.12.2 {@code GirlInventoryContainerGui}). */
+    private static final int ROD_PANEL_U = 80;
+    private static final int ROD_PANEL_V = 142;
     private static final int PANEL_HEIGHT = 114;
     private static final int PANEL_OFFSET_Y = 52;
 
@@ -34,7 +38,7 @@ public class GirlEquipmentScreen extends AbstractContainerScreen<GirlEquipmentMe
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(graphics, mouseX, mouseY, partialTick);
         graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.leftPos, this.topPos + PANEL_OFFSET_Y,
-            PANEL_U, PANEL_V, this.imageWidth, PANEL_HEIGHT, 256, 256);
+            this.menu.hasRodSlot() ? ROD_PANEL_U : PANEL_U, this.menu.hasRodSlot() ? ROD_PANEL_V : PANEL_V, this.imageWidth, PANEL_HEIGHT, 256, 256);
     }
 
     @Override

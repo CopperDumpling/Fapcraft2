@@ -74,6 +74,21 @@ public enum GirlAction {
     PRONE_DOGGY_SOFT(0, true, false, true, true),
     PRONE_DOGGY_HARD(0, true, false, true, true),
     PRONE_DOGGY_CUM(0, true, false, true, true),
+    // Luna: fishing on her own (not scene steps: she still takes orders), touch boobs, and the
+    // sitting cowgirl after she waits by a bed
+    FISHING_START(5, false, false, false),
+    FISHING_IDLE(0, false, true, false),
+    FISHING_EAT(0, false, false, false),
+    FISHING_THROW_AWAY(0, false, false, false),
+    TOUCH_BOOBS_INTRO(0, true, false),
+    TOUCH_BOOBS_SLOW(2, true, false),
+    TOUCH_BOOBS_FAST(2, true, false),
+    TOUCH_BOOBS_CUM(2, true, false),
+    WAIT_CAT(0, false, false),
+    COWGIRL_SITTING_INTRO(0, true, false),
+    COWGIRL_SITTING_SLOW(5, true, false),
+    COWGIRL_SITTING_FAST(5, true, false),
+    COWGIRL_SITTING_CUM(5, true, false),
     // companion (1.12.2 GirlFollowGoal + the pearl home)
     ATTACK(0, false, true, false),
     RIDE(0, false, true, false),

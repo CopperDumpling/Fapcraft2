@@ -4,6 +4,8 @@ import com.trolmastercard.sexmod.Fapcraft;
 import com.trolmastercard.sexmod.entity.bia.BiaEntity;
 import com.trolmastercard.sexmod.entity.ellie.EllieEntity;
 import com.trolmastercard.sexmod.entity.jenny.JennyEntity;
+import com.trolmastercard.sexmod.entity.luna.LunaEntity;
+import com.trolmastercard.sexmod.entity.luna.LunaHookEntity;
 import com.trolmastercard.sexmod.entity.manglelie.ManglelieEntity;
 import com.trolmastercard.sexmod.entity.slime.SlimeEntity;
 import com.trolmastercard.sexmod.entity.slime.WildSlimeEntity;
@@ -43,6 +45,13 @@ public final class ModEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<WildSlimeEntity>> WILD_SLIME = ENTITIES.registerEntityType(
         "friendly_slime", WildSlimeEntity::new, MobCategory.CREATURE, b -> b.sized(0.52F, 0.52F).eyeHeight(0.325F).clientTrackingRange(10));
 
+    // 1.12.2: the default 0.6 x 1.8, eye height 1.34
+    public static final DeferredHolder<EntityType<?>, EntityType<LunaEntity>> LUNA = ENTITIES.registerEntityType(
+        "luna", LunaEntity::new, MobCategory.CREATURE, b -> b.sized(0.6F, 1.8F).eyeHeight(1.34F).clientTrackingRange(4));
+    // 1.12.2 SexEntity ("luna_hook"): a 0.25 bobber
+    public static final DeferredHolder<EntityType<?>, EntityType<LunaHookEntity>> LUNA_HOOK = ENTITIES.registerEntityType(
+        "luna_hook", LunaHookEntity::new, MobCategory.MISC, b -> b.sized(0.25F, 0.25F).noSave().noSummon().clientTrackingRange(4).updateInterval(5));
+
     private ModEntities() {
     }
 
@@ -56,6 +65,7 @@ public final class ModEntities {
             event.put(SLIME.get(), SlimeEntity.createAttributes().build());
             event.put(WILD_SLIME.get(), Monster.createMonsterAttributes().build());
             event.put(MANGLELIE.get(), ManglelieEntity.createAttributes().build());
+            event.put(LUNA.get(), LunaEntity.createAttributes().build());
         }
 
         @SubscribeEvent

@@ -2,6 +2,7 @@ package com.trolmastercard.sexmod.registry;
 
 import com.trolmastercard.sexmod.Fapcraft;
 import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.FishingRodItem;
 import net.minecraft.world.item.SpawnEggItem;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -24,6 +25,12 @@ public final class ModItems {
     public static final DeferredItem<SpawnEggItem> MANGLELIE_SPAWN_EGG = ITEMS.registerItem(
         "manglelie_spawn_egg", SpawnEggItem::new, p -> p.spawnEgg(ModEntities.MANGLELIE.get()));
 
+    public static final DeferredItem<SpawnEggItem> LUNA_SPAWN_EGG = ITEMS.registerItem(
+        "luna_spawn_egg", SpawnEggItem::new, p -> p.spawnEgg(ModEntities.LUNA.get()));
+    /** 1.12.2 {@code LunaRodItem}: a plain fishing rod (64 uses) whose model shows Luna's cast too. */
+    public static final DeferredItem<FishingRodItem> LUNA_ROD = ITEMS.registerItem(
+        "luna_rod", FishingRodItem::new, p -> p.durability(64).enchantable(1));
+
     private ModItems() {
     }
 
@@ -37,6 +44,9 @@ public final class ModItems {
                 event.accept(BIA_SPAWN_EGG);
                 event.accept(SLIME_SPAWN_EGG);
                 event.accept(MANGLELIE_SPAWN_EGG);
+                event.accept(LUNA_SPAWN_EGG);
+            } else if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
+                event.accept(LUNA_ROD);
             }
         }
     }

@@ -2,6 +2,7 @@ package com.trolmastercard.sexmod.menu;
 
 import com.trolmastercard.sexmod.entity.GirlEntity;
 import com.trolmastercard.sexmod.entity.GirlSlot;
+import com.trolmastercard.sexmod.entity.luna.LunaEntity;
 import com.trolmastercard.sexmod.registry.ModMenus;
 import java.util.List;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -16,18 +17,23 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * A girl's equipment: weapon, bow and four armour slots above the player's inventory (1.12.2
- * {@code ChestContainer}). The server's menu edits her inventory directly; 1.12.2 instead let the
+ * {@code ChestContainer}); Luna's adds her fishing rod slot on the left and shifts the rest right
+ * (1.12.2 {@code GirlInventoryContainer2}). The server's menu edits her inventory directly; 1.12.2 instead let the
  * client upload both inventories when the screen closed ({@code UploadInventoryToServerPacket}).
  */
 public class GirlEquipmentMenu extends AbstractContainerMenu {
     /** The slots shown, in order, and their x positions (1.12.2 layout; all at y 60). */
     public static final List<GirlSlot> SLOTS = List.of(GirlSlot.WEAPON, GirlSlot.BOW, GirlSlot.HELMET, GirlSlot.CHEST_PLATE, GirlSlot.PANTS, GirlSlot.SHOES);
     private static final int[] SLOT_X = {31, 50, 72, 91, 110, 129};
+    /** Luna's: the same six, then her rod. */
+    private static final List<GirlSlot> ROD_SLOTS = List.of(GirlSlot.WEAPON, GirlSlot.BOW, GirlSlot.HELMET, GirlSlot.CHEST_PLATE, GirlSlot.PANTS, GirlSlot.SHOES, GirlSlot.ROD);
+    private static final int[] ROD_SLOT_X = {41, 59, 81, 100, 119, 138, 22};
     private static final int SLOT_Y = 60;
     /** Range in which the menu stays open (vanilla's entity menus use the same). */
     private static final double MAX_DISTANCE_SQR = 8.0 * 8.0;
 
     private final @Nullable GirlEntity girl;
+    private final int girlSlots;
 
     /** Client: opened by the server, which sends the girl's entity id. */
     public static GirlEquipmentMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf data) {
@@ -39,9 +45,12 @@ public class GirlEquipmentMenu extends AbstractContainerMenu {
         super(ModMenus.GIRL_EQUIPMENT.get(), containerId);
         this.girl = girl;
         Container inventory = girl != null ? girl.getInventory() : new SimpleContainer(GirlEntity.INVENTORY_SIZE);
-        for (int i = 0; i < SLOTS.size(); i++) {
-            GirlSlot type = SLOTS.get(i);
-            addSlot(new Slot(inventory, type.index(), SLOT_X[i], SLOT_Y) {
+        List<GirlSlot> slots = hasRodSlot() ? ROD_SLOTS : SLOTS;
+        int[] slotX = hasRodSlot() ? ROD_SLOT_X : SLOT_X;
+        this.girlSlots = slots.size();
+        for (int i = 0; i < slots.size(); i++) {
+            GirlSlot type = slots.get(i);
+            addSlot(new Slot(inventory, type.index(), slotX[i], SLOT_Y) {
                 @Override
                 public boolean mayPlace(ItemStack stack) {
                     return type.accepts(stack);
@@ -49,6 +58,11 @@ public class GirlEquipmentMenu extends AbstractContainerMenu {
             });
         }
         addStandardInventorySlots(playerInventory, 8, 84);
+    }
+
+    /** Luna's layout, with the rod slot. */
+    public boolean hasRodSlot() {
+        return this.girl instanceof LunaEntity;
     }
 
     @Override
@@ -63,7 +77,7 @@ public class GirlEquipmentMenu extends AbstractContainerMenu {
         if (!slot.hasItem()) return ItemStack.EMPTY;
         ItemStack stack = slot.getItem();
         ItemStack original = stack.copy();
-        int girlSlots = SLOTS.size();
+        int girlSlots = this.girlSlots;
         if (slotIndex < girlSlots) {
             if (!moveItemStackTo(stack, girlSlots, this.slots.size(), true)) return ItemStack.EMPTY;
         } else if (!moveItemStackTo(stack, 0, girlSlots, false)) {

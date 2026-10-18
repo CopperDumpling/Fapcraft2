@@ -10,6 +10,7 @@ import org.jspecify.annotations.Nullable;
 public class GirlRenderer<T extends GirlEntity> extends GeoEntityRenderer<T, LivingEntityRenderState> {
     public GirlRenderer(EntityRendererProvider.Context context, GirlModel<T> model, HeldWeaponLayer.WeaponPose weaponPose, ArmorLayer.Bones armorBones) {
         super(context, model);
+        withRenderLayer(HeadLookLayer::new);
         withRenderLayer(PartnerBodyLayer::new);
         withRenderLayer(BoyCamLayer::new);
         withRenderLayer(renderer -> new ArmorLayer<>(renderer, armorBones));

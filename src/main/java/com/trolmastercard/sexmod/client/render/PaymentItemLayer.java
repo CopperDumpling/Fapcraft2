@@ -31,6 +31,7 @@ public class PaymentItemLayer<T extends GirlEntity> extends GeoRenderLayer<T, Vo
     public static final String BONE = "itemRenderer";
     private static final DataTicket<ItemStackRenderState> ITEM = DataTicket.create("sexmod_payment_item", ItemStackRenderState.class);
     private static final DataTicket<Integer> COUNT = DataTicket.create("sexmod_payment_count", Integer.class);
+    private static final DataTicket<Float> SCALE = DataTicket.create("sexmod_payment_scale", Float.class);
     private final ItemModelResolver itemModelResolver;
 
     public PaymentItemLayer(EntityRendererProvider.Context context, GeoRenderer<T, Void, LivingEntityRenderState> renderer) {
@@ -45,6 +46,7 @@ public class PaymentItemLayer<T extends GirlEntity> extends GeoRenderLayer<T, Vo
         ItemStack single = option.price().copyWithCount(1);
         renderState.addGeckolibData(ITEM, RenderUtil.createRenderStateForItem(single, this.itemModelResolver, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, girl));
         renderState.addGeckolibData(COUNT, option.priceCount());
+        renderState.addGeckolibData(SCALE, girl.paymentItemScale());
     }
 
     @Override
@@ -59,6 +61,7 @@ public class PaymentItemLayer<T extends GirlEntity> extends GeoRenderLayer<T, Vo
         if (item == null || item.isEmpty()) return;
         int count = Math.min(state.getOrDefaultGeckolibData(COUNT, 1), 3);
         PoseStack poseStack = pass.poseStack();
+        float scale = state.getOrDefaultGeckolibData(SCALE, 1.0F);
         for (int i = 0; i < count; i++) {
             poseStack.pushPose();
             poseStack.rotateDegrees(Axis.ZP, 2.5F);
@@ -70,6 +73,7 @@ public class PaymentItemLayer<T extends GirlEntity> extends GeoRenderLayer<T, Vo
                 poseStack.rotateDegrees(Axis.ZP, 15.0F);
                 poseStack.translate(0.0F, 0.0F, 0.025F);
             }
+            poseStack.scale(scale, scale, scale);
             item.submit(poseStack, renderTasks, pass.packedLight(), OverlayTexture.NO_OVERLAY, state.outlineColor);
             poseStack.popPose();
         }

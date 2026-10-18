@@ -3,7 +3,10 @@ package com.trolmastercard.sexmod.client.render;
 import com.trolmastercard.sexmod.Fapcraft;
 import com.trolmastercard.sexmod.client.render.slime.WildSlimeModel;
 import com.trolmastercard.sexmod.client.render.slime.WildSlimeRenderer;
+import com.trolmastercard.sexmod.client.render.luna.LunaHookRenderer;
+import com.trolmastercard.sexmod.client.render.luna.LunaRodCast;
 import com.trolmastercard.sexmod.entity.ellie.EllieEntity;
+import com.trolmastercard.sexmod.entity.luna.LunaEntity;
 import com.trolmastercard.sexmod.entity.manglelie.ManglelieEntity;
 import com.trolmastercard.sexmod.entity.slime.SlimeEntity;
 import com.trolmastercard.sexmod.registry.ModEntities;
@@ -12,6 +15,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterConditionalItemModelPropertyEvent;
 import org.joml.Vector3f;
 
 @EventBusSubscriber(modid = Fapcraft.MODID, value = Dist.CLIENT)
@@ -52,6 +56,16 @@ public final class ModRenderers {
             List.of("fleshL", "fleshR", "vagina", "curvesL", "curvesR", "kneeL", "kneeR")),
         new ArmorLayer.Part(List.of("armorShoesL", "armorShoesR"), List.of()));
 
+    /** 1.12.2 {@code LunaEntity} constructor values. */
+    private static final HeldWeaponLayer.WeaponPose LUNA_WEAPON = new HeldWeaponLayer.WeaponPose(230.0F, 150.0F, new Vector3f(0.0F, -0.06F, 0.1F), 320.0F);
+    /** 1.12.2 {@code CatNpcModel}: her cloth under a chestplate or leggings. */
+    private static final ArmorLayer.Bones LUNA_ARMOR = new ArmorLayer.Bones(
+        new ArmorLayer.Part(List.of("armorHelmet"), List.of()),
+        new ArmorLayer.Part(List.of("armorShoulderR", "armorShoulderL", "armorChest", "armorBoobs"), List.of("boobsFlesh", "cloth")),
+        new ArmorLayer.Part(List.of("armorBootyR", "armorBootyL", "armorPantsLowL", "armorPantsLowR", "armorPantsUpR", "armorPantsUpL", "armorHip"),
+            List.of("fleshL", "fleshR", "vagina", "curvesL", "curvesR", "kneeL", "kneeR", "cloth")),
+        new ArmorLayer.Part(List.of("armorShoesL", "armorShoesR"), List.of()));
+
     private ModRenderers() {
     }
 
@@ -65,9 +79,18 @@ public final class ModRenderers {
         event.registerEntityRenderer(ModEntities.SLIME.get(), ctx -> new GirlRenderer<SlimeEntity>(ctx, new GirlModel<>("slime", "armored", "nude"), JENNY_WEAPON, SLIME_ARMOR)
             .withRenderLayer(SlimeLayer::new));
         event.registerEntityRenderer(ModEntities.WILD_SLIME.get(), WildSlimeRenderer::new);
+        // one model for every outfit
+        event.registerEntityRenderer(ModEntities.LUNA.get(), ctx -> new GirlRenderer<LunaEntity>(ctx, new GirlModel<>("cat", "cat", "cat"), LUNA_WEAPON, LUNA_ARMOR)
+            .withRenderLayer(renderer -> new LunaLayer(ctx, renderer)));
+        event.registerEntityRenderer(ModEntities.LUNA_HOOK.get(), LunaHookRenderer::new);
         // one model for every outfit; she never wears armour or holds weapons
         event.registerEntityRenderer(ModEntities.MANGLELIE.get(), ctx -> new GirlRenderer<ManglelieEntity>(ctx,
             new GirlModel<>("manglelie", "manglelie", "manglelie"), JENNY_WEAPON, ArmorLayer.Bones.NONE).withRenderLayer(ManglelieLayer::new));
+    }
+
+    @SubscribeEvent
+    static void onRegisterItemProperties(RegisterConditionalItemModelPropertyEvent event) {
+        event.register(Fapcraft.id("luna_cast"), LunaRodCast.MAP_CODEC);
     }
 
     @SubscribeEvent

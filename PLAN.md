@@ -226,6 +226,27 @@ girls at parity.
   threesome, damage forwarded to her Galath, the angry face. They all need a Galath.
 - Not ported: 1.12's wing mesh for her (cast her to a Galath interface she lacks).
 
+**4e: Luna (built, awaiting in-game check)**
+- [x] Spawn egg, renderer (cat model, her hair hangs straight while she tilts her head unless
+  anchored), weapon grip, a fishing rod slot in her equipment menu (1.12 layout), iron sword, bow
+  and fishing rod to start; twice as fast alone as with a master; jumps higher (much higher out of
+  water); creepers avoid her; new-home line.
+- [x] Fishing, alone and idle: deepest nearby water in river, ocean, beach, stony shore or swamp
+  biomes, walk to the shore, cast, reel in at a bite (fishing loot table), eat fish or throw the
+  rest away, rest 1200 ticks after three catches; a cast that lands on ground or an entity rules
+  the spot out; lure on her rod speeds bites. `luna_hook` bobber with line, catch flying to her;
+  `luna_rod` item (a 64-use rod whose model shows her cast).
+- [x] Touch boobs (2 salmon): payment (she eats them), intro, slow (two loops) ⇄ fast on sneak, climax.
+- [x] Sex (3 cod): payment, walk to the nearest bed's free side, sit and call; a player within
+  1.25 for 25 ticks gets the sitting cowgirl (transition, camera turned to face them): intro,
+  slow ⇄ fast on sneak, climax. No bed: she giggles that she ate the fish anyway.
+- [x] Headpat, free.
+- Shared fix: every girl now looks where she faces while idle or attacking (1.12
+  `GirlModel.handleAnimationEvent`: neck half the head's yaw, head yaw and pitch, body straight).
+- Changed: she looks for water once a second instead of every tick; her rod no longer wears out
+  (1.12 damaged an internal rod that would crash her after 64 catches); she puts her clothes back
+  on after a scene and fishes again after a bed scene (1.12 left both off for good).
+
 ### Phase 5: Complex girls
 - **Kobold:** tribes as `SavedData`, eggs, tribe UI, mining / tree felling (likely `Brain`), dragon staff + dragon.
 - **Goblin:** shoulder riding (passenger + first-person render), gesture pad, lair + locate command.

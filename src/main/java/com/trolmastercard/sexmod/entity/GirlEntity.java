@@ -630,12 +630,17 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
 
     /** Runs {@code goal} only while she is doing nothing in particular. */
     protected final GatedGoal idleOnly(net.minecraft.world.entity.ai.goal.Goal goal) {
-        return new GatedGoal(goal, () -> !isBusy() && getAction() == GirlAction.NULL);
+        return new GatedGoal(goal, () -> !isBusy() && getAction() == GirlAction.NULL && !ownErrand());
     }
 
     /** As {@link #idleOnly}, and only while she follows nobody (the follow goal wanders near the master instead). */
     protected final GatedGoal alone(net.minecraft.world.entity.ai.goal.Goal goal) {
-        return new GatedGoal(goal, () -> !isBusy() && getAction() == GirlAction.NULL && !hasMaster());
+        return new GatedGoal(goal, () -> !isBusy() && getAction() == GirlAction.NULL && !hasMaster() && !ownErrand());
+    }
+
+    /** Server: she is about something of her own (Luna heading for water), so her idle goals pause. */
+    protected boolean ownErrand() {
+        return false;
     }
 
     private static boolean isTemptItem(ItemStack stack) {
@@ -845,6 +850,12 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
         this.sceneOrigin = null;
     }
 
+    /** Server: from now on the partner's poses are measured from {@code origin}, facing {@code yaw}. */
+    protected final void setSceneFrame(Vec3 origin, float yaw) {
+        this.sceneOrigin = origin;
+        this.sceneYaw = Mth.wrapDegrees(yaw);
+    }
+
     protected final void positionPartner(ServerPlayer player, PlayerPose pose) {
         if (this.sceneOrigin == null) this.sceneOrigin = player.position();
         double yawRad = Math.toRadians(this.sceneYaw);
@@ -961,7 +972,8 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>("movement", 5, this::movementState));
+        controllers.add(new AnimationController<>("movement", 5, this::movementState)
+            .setSoundKeyframeHandler(event -> onMovementAnimationEvent(event.keyframeData().getSound())));
         controllers.add(new AnimationController<>("eyes", 10, this::eyesState));
         controllers.add(new AnimationController<GirlEntity>("action", 0, this::actionState)
             .setSoundKeyframeHandler(event -> onAnimationEvent(event.keyframeData().getSound())));
@@ -978,6 +990,15 @@ public abstract class GirlEntity extends PathfinderMob implements GeoEntity {
 
     /** 1.12.2's animations put scene events in sound keyframes ({@code bjiDone}, ...). Client only. */
     protected void onAnimationEvent(String event) {
+    }
+
+    /** Events of her walk / idle animations (Luna's {@code idleDone}). Client only. */
+    protected void onMovementAnimationEvent(String event) {
+    }
+
+    /** Client: how big the price items in her hand are drawn (Luna eats hers bite by bite). */
+    public float paymentItemScale() {
+        return 1.0F;
     }
 
     /** The companion actions' animations, named alike for every girl. */
